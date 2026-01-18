@@ -27,6 +27,7 @@
             text-align: center;
             color: white;
             margin-bottom: 40px;
+            position: relative;
         }
 
         h1 {
@@ -37,6 +38,46 @@
         .subtitle {
             font-size: 1.1em;
             opacity: 0.9;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .sync-status {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            padding: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sync-status.synced {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .sync-status.error {
+            background: rgba(244, 67, 54, 0.3);
+        }
+
+        .sync-status.syncing {
+            background: rgba(255, 193, 7, 0.3);
         }
 
         .card {
@@ -109,7 +150,7 @@
             font-weight: bold;
         }
 
-        .save-btn:hover {
+        .save-btn:hover:not(:disabled) {
             background: #5568d3;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
@@ -132,6 +173,12 @@
         .message.success {
             background: #d4edda;
             color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
             display: block;
         }
 
@@ -206,6 +253,124 @@
             font-weight: bold;
             color: #667eea;
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .help-text {
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #0066cc;
+        }
+
+        .help-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -213,7 +378,12 @@
         <header>
             <h1>📊 Mon Niko Niko</h1>
             <p class="subtitle">Suivez votre humeur au quotidien</p>
+            <button class="settings-btn" id="settings-btn">⚙️ Configuration</button>
         </header>
+
+        <div class="sync-status" id="sync-status">
+            Chargement...
+        </div>
 
         <div class="card today-section">
             <div class="date" id="today-date"></div>
@@ -256,19 +426,151 @@
         </div>
     </div>
 
+    <!-- Modal de configuration -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <h2>⚙️ Configuration GitHub</h2>
+
+            <div class="help-text">
+                Pour synchroniser vos humeurs via Git, vous devez créer un Personal Access Token GitHub.
+                <br><br>
+                <a href="https://github.com/settings/tokens/new" target="_blank">Créer un token →</a>
+                <br>
+                Permissions requises : <strong>repo</strong> (Full control of private repositories)
+            </div>
+
+            <div class="form-group">
+                <label for="github-owner">Propriétaire du repo</label>
+                <input type="text" id="github-owner" placeholder="votre-username">
+                <small>Votre nom d'utilisateur GitHub</small>
+            </div>
+
+            <div class="form-group">
+                <label for="github-repo">Nom du repository</label>
+                <input type="text" id="github-repo" placeholder="username.github.io">
+                <small>Le nom de votre repository</small>
+            </div>
+
+            <div class="form-group">
+                <label for="github-branch">Branche</label>
+                <input type="text" id="github-branch" placeholder="main" value="main">
+                <small>La branche où enregistrer les données (généralement 'main' ou 'master')</small>
+            </div>
+
+            <div class="form-group">
+                <label for="github-token">Personal Access Token</label>
+                <input type="password" id="github-token" placeholder="ghp_...">
+                <small>Votre token GitHub (stocké localement dans ce navigateur)</small>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancel-settings">Annuler</button>
+                <button class="btn btn-primary" id="save-settings">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Classe pour gérer le Niko Niko
+        // Classe pour gérer l'API GitHub
+        class GitHubAPI {
+            constructor(owner, repo, branch, token) {
+                this.owner = owner;
+                this.repo = repo;
+                this.branch = branch;
+                this.token = token;
+                this.apiBase = 'https://api.github.com';
+                this.filePath = 'moods.json';
+            }
+
+            async getFile() {
+                const url = `${this.apiBase}/repos/${this.owner}/${this.repo}/contents/${this.filePath}?ref=${this.branch}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        // Fichier n'existe pas, retourner structure vide
+                        return { moods: {}, sha: null };
+                    }
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const content = JSON.parse(atob(data.content));
+                return { ...content, sha: data.sha };
+            }
+
+            async updateFile(moods, sha) {
+                const url = `${this.apiBase}/repos/${this.owner}/${this.repo}/contents/${this.filePath}`;
+                const content = btoa(JSON.stringify({ moods }, null, 2));
+
+                const today = new Date().toLocaleDateString('fr-FR');
+                const moodValue = Object.values(moods)[Object.keys(moods).length - 1];
+                const moodEmoji = moodValue ? moodValue.emoji : '📝';
+
+                const body = {
+                    message: `🎭 Humeur du ${today} : ${moodEmoji}`,
+                    content: content,
+                    branch: this.branch
+                };
+
+                if (sha) {
+                    body.sha = sha;
+                }
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to update file: ${errorData.message}`);
+                }
+
+                return await response.json();
+            }
+        }
+
+        // Classe principale pour gérer le Niko Niko
         class NikoNiko {
             constructor() {
-                this.moods = this.loadMoods();
+                this.moods = {};
                 this.selectedMood = null;
+                this.githubConfig = this.loadGitHubConfig();
+                this.githubAPI = null;
+                this.fileSha = null;
                 this.init();
             }
 
-            init() {
+            async init() {
                 this.displayTodayDate();
                 this.setupMoodSelector();
                 this.setupSaveButton();
+                this.setupSettings();
+
+                if (this.githubConfig) {
+                    this.githubAPI = new GitHubAPI(
+                        this.githubConfig.owner,
+                        this.githubConfig.repo,
+                        this.githubConfig.branch,
+                        this.githubConfig.token
+                    );
+                    await this.loadFromGitHub();
+                } else {
+                    this.updateSyncStatus('Configuration GitHub requise', 'error');
+                    this.showSettingsModal();
+                }
+
                 this.displayHistory();
                 this.checkTodayMood();
             }
@@ -284,6 +586,8 @@
                 const moodOptions = document.querySelectorAll('.mood-option');
                 moodOptions.forEach(option => {
                     option.addEventListener('click', () => {
+                        if (option.style.cursor === 'default') return;
+
                         moodOptions.forEach(opt => opt.classList.remove('selected'));
                         option.classList.add('selected');
                         this.selectedMood = {
@@ -296,21 +600,126 @@
             }
 
             setupSaveButton() {
-                document.getElementById('save-btn').addEventListener('click', () => {
-                    this.saveMood();
+                document.getElementById('save-btn').addEventListener('click', async () => {
+                    await this.saveMood();
                 });
             }
 
-            saveMood() {
+            setupSettings() {
+                const settingsBtn = document.getElementById('settings-btn');
+                const modal = document.getElementById('settings-modal');
+                const cancelBtn = document.getElementById('cancel-settings');
+                const saveBtn = document.getElementById('save-settings');
+
+                settingsBtn.addEventListener('click', () => {
+                    this.showSettingsModal();
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                });
+
+                saveBtn.addEventListener('click', () => {
+                    this.saveGitHubConfig();
+                });
+            }
+
+            showSettingsModal() {
+                const modal = document.getElementById('settings-modal');
+
+                if (this.githubConfig) {
+                    document.getElementById('github-owner').value = this.githubConfig.owner;
+                    document.getElementById('github-repo').value = this.githubConfig.repo;
+                    document.getElementById('github-branch').value = this.githubConfig.branch;
+                    document.getElementById('github-token').value = this.githubConfig.token;
+                }
+
+                modal.classList.add('active');
+            }
+
+            saveGitHubConfig() {
+                const owner = document.getElementById('github-owner').value.trim();
+                const repo = document.getElementById('github-repo').value.trim();
+                const branch = document.getElementById('github-branch').value.trim() || 'main';
+                const token = document.getElementById('github-token').value.trim();
+
+                if (!owner || !repo || !token) {
+                    alert('Veuillez remplir tous les champs obligatoires');
+                    return;
+                }
+
+                this.githubConfig = { owner, repo, branch, token };
+                localStorage.setItem('nikoNikoGitHubConfig', JSON.stringify(this.githubConfig));
+
+                this.githubAPI = new GitHubAPI(owner, repo, branch, token);
+                document.getElementById('settings-modal').classList.remove('active');
+
+                this.updateSyncStatus('Configuration enregistrée, chargement...', 'syncing');
+                this.loadFromGitHub().then(() => {
+                    this.displayHistory();
+                    this.checkTodayMood();
+                });
+            }
+
+            loadGitHubConfig() {
+                const stored = localStorage.getItem('nikoNikoGitHubConfig');
+                return stored ? JSON.parse(stored) : null;
+            }
+
+            async loadFromGitHub() {
+                try {
+                    this.updateSyncStatus('Synchronisation...', 'syncing');
+                    const data = await this.githubAPI.getFile();
+                    this.moods = data.moods || {};
+                    this.fileSha = data.sha;
+                    this.updateSyncStatus('✓ Synchronisé avec GitHub', 'synced');
+                } catch (error) {
+                    console.error('Erreur lors du chargement:', error);
+                    this.updateSyncStatus(`Erreur: ${error.message}`, 'error');
+                    // Fallback sur localStorage
+                    const stored = localStorage.getItem('nikoNikoMoods');
+                    this.moods = stored ? JSON.parse(stored) : {};
+                }
+            }
+
+            async saveMood() {
                 if (!this.selectedMood) return;
 
                 const today = this.getTodayKey();
                 this.moods[today] = this.selectedMood;
-                this.saveMoods();
-                this.showMessage('Humeur enregistrée avec succès !');
-                this.displayHistory();
 
-                // Désactiver la sélection pour aujourd'hui
+                if (this.githubAPI) {
+                    try {
+                        this.updateSyncStatus('Enregistrement...', 'syncing');
+                        document.getElementById('save-btn').disabled = true;
+
+                        const result = await this.githubAPI.updateFile(this.moods, this.fileSha);
+                        this.fileSha = result.content.sha;
+
+                        this.updateSyncStatus('✓ Humeur enregistrée et synchronisée', 'synced');
+                        this.showMessage('Humeur enregistrée avec succès !', 'success');
+
+                        // Sauvegarder aussi en local comme backup
+                        localStorage.setItem('nikoNikoMoods', JSON.stringify(this.moods));
+                    } catch (error) {
+                        console.error('Erreur lors de la sauvegarde:', error);
+                        this.updateSyncStatus(`Erreur: ${error.message}`, 'error');
+                        this.showMessage('Erreur lors de la synchronisation. Humeur sauvegardée localement.', 'error');
+
+                        // Sauvegarder en local en cas d'erreur
+                        localStorage.setItem('nikoNikoMoods', JSON.stringify(this.moods));
+                    }
+                } else {
+                    // Mode local uniquement
+                    localStorage.setItem('nikoNikoMoods', JSON.stringify(this.moods));
+                    this.showMessage('Humeur enregistrée localement', 'success');
+                }
+
+                this.displayHistory();
+                this.disableTodaySelection();
+            }
+
+            disableTodaySelection() {
                 document.getElementById('save-btn').disabled = true;
                 document.querySelectorAll('.mood-option').forEach(opt => {
                     opt.style.cursor = 'default';
@@ -326,7 +735,6 @@
             checkTodayMood() {
                 const today = this.getTodayKey();
                 if (this.moods[today]) {
-                    // Humeur déjà enregistrée aujourd'hui
                     const todayMood = this.moods[today];
                     document.querySelectorAll('.mood-option').forEach(opt => {
                         if (opt.dataset.emoji === todayMood.emoji) {
@@ -336,17 +744,22 @@
                         opt.onclick = null;
                     });
                     document.getElementById('save-btn').disabled = true;
-                    this.showMessage('Vous avez déjà enregistré votre humeur aujourd\'hui !');
                 }
             }
 
-            showMessage(text) {
+            updateSyncStatus(message, status) {
+                const statusEl = document.getElementById('sync-status');
+                statusEl.textContent = message;
+                statusEl.className = `sync-status ${status}`;
+            }
+
+            showMessage(text, type = 'success') {
                 const message = document.getElementById('message');
                 message.textContent = text;
-                message.className = 'message success';
+                message.className = `message ${type}`;
                 setTimeout(() => {
                     message.style.display = 'none';
-                }, 3000);
+                }, 5000);
             }
 
             displayHistory() {
@@ -427,15 +840,6 @@
                         <div class="stat-label">Moyenne générale</div>
                     </div>
                 `;
-            }
-
-            loadMoods() {
-                const stored = localStorage.getItem('nikoNikoMoods');
-                return stored ? JSON.parse(stored) : {};
-            }
-
-            saveMoods() {
-                localStorage.setItem('nikoNikoMoods', JSON.stringify(this.moods));
             }
         }
 
