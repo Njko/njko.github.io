@@ -14,7 +14,7 @@ Cette application affiche votre humeur du jour en lisant le fichier `moods.json`
 
 - 🎭 Grande visualisation de l'humeur du jour avec l'emoji d'humeur et de raison
 - 📊 Statistiques simples (nombre de jours, moyenne)
-- 📅 Calendrier des 2 derniers mois pour voir les tendances en un coup d'œil
+- 📅 Calendrier des 3 derniers mois pour voir les tendances en un coup d'œil
 - 🎨 Design épuré et animé
 
 ### Mise à jour des humeurs
@@ -66,7 +66,7 @@ Chaque entrée contient :
 
 ## Visualisation du calendrier
 
-Le calendrier affiche les 2 derniers mois avec :
+Le calendrier affiche les 3 derniers mois avec :
 - Les jours du mois dans une grille (format semaine : Lun-Dim)
 - L'emoji d'humeur pour chaque jour enregistré
 - L'emoji de raison en dessous (si renseigné)

@@ -279,7 +279,7 @@
 
         <!-- Carte historique -->
         <div class="card" id="history-card" style="display: none;">
-            <div class="history-title">📅 Historique des 2 derniers mois</div>
+            <div class="history-title">📅 Historique des 3 derniers mois</div>
             <div id="calendar-container"></div>
         </div>
     </div>
@@ -393,8 +393,8 @@
                 const today = new Date();
                 const months = [];
 
-                // Générer les 2 derniers mois
-                for (let i = 1; i >= 0; i--) {
+                // Générer les 3 derniers mois
+                for (let i = 2; i >= 0; i--) {
                     const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
                     months.push(date);
                 }
