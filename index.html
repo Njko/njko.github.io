@@ -15,23 +15,20 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            padding: 40px 20px;
         }
 
         .container {
-            max-width: 600px;
-            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
         .card {
             background: white;
             border-radius: 20px;
-            padding: 60px 40px;
+            padding: 40px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
+            margin-bottom: 30px;
             animation: fadeIn 0.6s ease-out;
         }
 
@@ -51,16 +48,19 @@
             color: #667eea;
             margin-bottom: 30px;
             font-weight: 600;
+            text-align: center;
         }
 
         .date {
             font-size: 1.2em;
             color: #666;
             margin-bottom: 40px;
+            text-align: center;
         }
 
         .mood-display {
             margin: 40px 0;
+            text-align: center;
         }
 
         .mood-emoji {
@@ -102,18 +102,21 @@
             padding: 40px;
             color: #999;
             font-size: 1.2em;
+            text-align: center;
         }
 
         .error {
             padding: 40px;
             color: #d32f2f;
             font-size: 1.1em;
+            text-align: center;
         }
 
         .loading {
             padding: 40px;
             color: #667eea;
             font-size: 1.2em;
+            text-align: center;
         }
 
         .stats-mini {
@@ -141,10 +144,130 @@
             color: #999;
             margin-top: 5px;
         }
+
+        /* Calendrier */
+        .history-title {
+            font-size: 1.3em;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .calendar-section {
+            margin-bottom: 40px;
+        }
+
+        .calendar-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .month-title {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .calendar-day-name {
+            text-align: center;
+            font-size: 0.75em;
+            color: #999;
+            font-weight: 600;
+            padding: 8px 0;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #f8f9fa;
+            position: relative;
+            padding: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+        }
+
+        .calendar-day.has-mood {
+            background: linear-gradient(135deg, #f0f0ff 0%, #fff 100%);
+            border: 2px solid #e0e0ff;
+            cursor: pointer;
+        }
+
+        .calendar-day.has-mood:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .calendar-day.today {
+            border: 2px solid #667eea;
+            font-weight: bold;
+        }
+
+        .calendar-day-number {
+            font-size: 0.7em;
+            color: #999;
+            position: absolute;
+            top: 4px;
+            left: 6px;
+        }
+
+        .calendar-day.has-mood .calendar-day-number {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .calendar-mood-emoji {
+            font-size: 1.8em;
+            margin-top: 8px;
+        }
+
+        .calendar-reason-emoji {
+            font-size: 0.9em;
+            margin-top: 2px;
+            opacity: 0.7;
+        }
+
+        .no-history {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .calendar-mood-emoji {
+                font-size: 1.4em;
+            }
+
+            .calendar-day-number {
+                font-size: 0.65em;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Carte humeur du jour -->
         <div class="card">
             <div class="title">📊 Mon Niko Niko</div>
             <div class="date" id="today-date"></div>
@@ -152,6 +275,12 @@
             <div id="content">
                 <div class="loading">Chargement...</div>
             </div>
+        </div>
+
+        <!-- Carte historique -->
+        <div class="card" id="history-card" style="display: none;">
+            <div class="history-title">📅 Historique des 2 derniers mois</div>
+            <div id="calendar-container"></div>
         </div>
     </div>
 
@@ -164,6 +293,8 @@
             '1': { label: 'Difficile', description: 'Journée difficile', emoji: '😢' }
         };
 
+        const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
         class NikoNiko {
             constructor() {
                 this.moods = {};
@@ -174,6 +305,7 @@
                 this.displayTodayDate();
                 await this.loadMoods();
                 this.displayTodayMood();
+                this.displayCalendar();
             }
 
             displayTodayDate() {
@@ -245,6 +377,92 @@
                         </div>
                     </div>
                 `;
+            }
+
+            displayCalendar() {
+                const container = document.getElementById('calendar-container');
+                const historyCard = document.getElementById('history-card');
+
+                if (Object.keys(this.moods).length === 0) {
+                    historyCard.style.display = 'none';
+                    return;
+                }
+
+                historyCard.style.display = 'block';
+
+                const today = new Date();
+                const months = [];
+
+                // Générer les 2 derniers mois
+                for (let i = 1; i >= 0; i--) {
+                    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                    months.push(date);
+                }
+
+                container.innerHTML = months.map(month => this.generateMonthHTML(month)).join('');
+            }
+
+            generateMonthHTML(monthDate) {
+                const year = monthDate.getFullYear();
+                const month = monthDate.getMonth();
+                const monthName = monthDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+
+                // Lundi = 0, Dimanche = 6
+                let firstDayOfWeek = firstDay.getDay() - 1;
+                if (firstDayOfWeek === -1) firstDayOfWeek = 6;
+
+                let calendarHTML = `
+                    <div class="calendar-section">
+                        <div class="month-title">${monthName}</div>
+                        <div class="calendar-header">
+                            ${DAY_NAMES.map(day => `<div class="calendar-day-name">${day}</div>`).join('')}
+                        </div>
+                        <div class="calendar-grid">
+                `;
+
+                // Jours vides avant le début du mois
+                for (let i = 0; i < firstDayOfWeek; i++) {
+                    calendarHTML += '<div class="calendar-day empty"></div>';
+                }
+
+                // Jours du mois
+                const today = this.getTodayKey();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const mood = this.moods[dateKey];
+                    const isToday = dateKey === today;
+
+                    let dayClass = 'calendar-day';
+                    if (mood) dayClass += ' has-mood';
+                    if (isToday) dayClass += ' today';
+
+                    let moodContent = '';
+                    if (mood) {
+                        const moodConfig = MOOD_CONFIG[mood.value];
+                        moodContent = `
+                            <div class="calendar-mood-emoji">${moodConfig.emoji}</div>
+                            ${mood.reason ? `<div class="calendar-reason-emoji">${mood.reason}</div>` : ''}
+                        `;
+                    }
+
+                    calendarHTML += `
+                        <div class="${dayClass}">
+                            <div class="calendar-day-number">${day}</div>
+                            ${moodContent}
+                        </div>
+                    `;
+                }
+
+                calendarHTML += `
+                        </div>
+                    </div>
+                `;
+
+                return calendarHTML;
             }
 
             showError(message) {
