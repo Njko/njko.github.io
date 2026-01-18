@@ -92,6 +92,12 @@
             font-style: italic;
         }
 
+        .mood-reason {
+            font-size: 3em;
+            margin-top: 30px;
+            opacity: 0.8;
+        }
+
         .no-mood {
             padding: 40px;
             color: #999;
@@ -207,12 +213,14 @@
                 }
 
                 const moodConfig = MOOD_CONFIG[todayMood.value];
+                const reasonHTML = todayMood.reason ? `<div class="mood-reason">${todayMood.reason}</div>` : '';
 
                 content.innerHTML = `
                     <div class="mood-display">
-                        <span class="mood-emoji">${todayMood.emoji}</span>
+                        <span class="mood-emoji">${moodConfig.emoji}</span>
                         <div class="mood-label">${moodConfig.label}</div>
                         <div class="mood-description">${moodConfig.description}</div>
+                        ${reasonHTML}
                     </div>
                     ${this.getStatsHTML()}
                 `;
