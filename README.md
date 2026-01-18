@@ -25,17 +25,23 @@ Les humeurs sont enregistrées dans le fichier `moods.json` à la racine du repo
 ```json
 {
   "moods": {
+    "2026-01-17": {
+      "value": "1",
+      "reason": "💻"
+    },
     "2026-01-18": {
       "value": "2",
-      "emoji": "😕"
-    },
-    "2026-01-19": {
-      "value": "4",
-      "emoji": "🙂"
+      "reason": "🏠"
     }
   }
 }
 ```
+
+### Structure des entrées
+
+Chaque entrée contient :
+- **`value`** (1-5) : Le niveau d'humeur (l'emoji d'humeur est automatiquement mappé depuis cette valeur)
+- **`reason`** (optionnel) : Un emoji représentant la raison/contexte de cette humeur (ex: 💻 travail, 🏠 maison, 👨‍👩‍👧‍👦 famille, etc.)
 
 ### Les 5 niveaux d'humeur
 
@@ -44,6 +50,18 @@ Les humeurs sont enregistrées dans le fichier `moods.json` à la racine du repo
 - **3** : 😐 Neutre - Journée normale
 - **2** : 😕 Moyen - Quelques difficultés
 - **1** : 😢 Difficile - Journée difficile
+
+### Exemples d'emojis de raison
+
+- 💻 Travail
+- 🏠 Maison
+- 👨‍👩‍👧‍👦 Famille
+- 🏃 Sport/Santé
+- 💰 Finances
+- ✈️ Voyage
+- 🎉 Événement spécial
+- 😴 Fatigue
+- etc.
 
 ## Workflow Git
 
@@ -59,8 +77,9 @@ Pour mettre à jour votre humeur du jour :
 
 ```bash
 # Éditer moods.json pour ajouter l'humeur du jour
+# Exemple : value: 2 (Moyen 😕), reason: 🏠 (maison)
 git add moods.json
-git commit -m "🎭 Humeur du 18/01 : 😕"
+git commit -m "🎭 Humeur du 18/01 : 😕 (🏠)"
 git push
 ```
 
