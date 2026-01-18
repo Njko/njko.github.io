@@ -1,8 +1,448 @@
-<html>
-  <head>
-  </head>
-  <body>
-    <h1>Hello world</h1>
-    <p>I just cleaned my github page. Yeah!</p>
-  </body>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Niko Niko - Calendrier d'humeur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .today-section {
+            text-align: center;
+        }
+
+        .date {
+            font-size: 1.3em;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .mood-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .mood-option {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            border: 3px solid transparent;
+        }
+
+        .mood-option:hover {
+            transform: scale(1.1);
+            background: #f0f0f0;
+        }
+
+        .mood-option.selected {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .mood-emoji {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .mood-label {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .save-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .save-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .save-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .history-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        .calendar-day {
+            background: #f8f9fa;
+            padding: 15px 10px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-date {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .calendar-mood {
+            font-size: 2em;
+        }
+
+        .empty-history {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-emoji {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Mon Niko Niko</h1>
+            <p class="subtitle">Suivez votre humeur au quotidien</p>
+        </header>
+
+        <div class="card today-section">
+            <div class="date" id="today-date"></div>
+            <p>Comment vous sentez-vous aujourd'hui ?</p>
+
+            <div class="mood-selector">
+                <div class="mood-option" data-mood="5" data-emoji="😄">
+                    <span class="mood-emoji">😄</span>
+                    <span class="mood-label">Excellent</span>
+                </div>
+                <div class="mood-option" data-mood="4" data-emoji="🙂">
+                    <span class="mood-emoji">🙂</span>
+                    <span class="mood-label">Bien</span>
+                </div>
+                <div class="mood-option" data-mood="3" data-emoji="😐">
+                    <span class="mood-emoji">😐</span>
+                    <span class="mood-label">Neutre</span>
+                </div>
+                <div class="mood-option" data-mood="2" data-emoji="😕">
+                    <span class="mood-emoji">😕</span>
+                    <span class="mood-label">Moyen</span>
+                </div>
+                <div class="mood-option" data-mood="1" data-emoji="😢">
+                    <span class="mood-emoji">😢</span>
+                    <span class="mood-label">Difficile</span>
+                </div>
+            </div>
+
+            <button class="save-btn" id="save-btn" disabled>Enregistrer mon humeur</button>
+            <div class="message" id="message"></div>
+        </div>
+
+        <div class="card history-section">
+            <h2>📅 Historique</h2>
+            <div class="stats" id="stats"></div>
+            <div class="calendar" id="calendar"></div>
+            <div class="empty-history" id="empty-history">
+                Aucune humeur enregistrée pour le moment. Commencez dès aujourd'hui !
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Classe pour gérer le Niko Niko
+        class NikoNiko {
+            constructor() {
+                this.moods = this.loadMoods();
+                this.selectedMood = null;
+                this.init();
+            }
+
+            init() {
+                this.displayTodayDate();
+                this.setupMoodSelector();
+                this.setupSaveButton();
+                this.displayHistory();
+                this.checkTodayMood();
+            }
+
+            displayTodayDate() {
+                const today = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('today-date').textContent =
+                    today.toLocaleDateString('fr-FR', options);
+            }
+
+            setupMoodSelector() {
+                const moodOptions = document.querySelectorAll('.mood-option');
+                moodOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        moodOptions.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                        this.selectedMood = {
+                            value: option.dataset.mood,
+                            emoji: option.dataset.emoji
+                        };
+                        document.getElementById('save-btn').disabled = false;
+                    });
+                });
+            }
+
+            setupSaveButton() {
+                document.getElementById('save-btn').addEventListener('click', () => {
+                    this.saveMood();
+                });
+            }
+
+            saveMood() {
+                if (!this.selectedMood) return;
+
+                const today = this.getTodayKey();
+                this.moods[today] = this.selectedMood;
+                this.saveMoods();
+                this.showMessage('Humeur enregistrée avec succès !');
+                this.displayHistory();
+
+                // Désactiver la sélection pour aujourd'hui
+                document.getElementById('save-btn').disabled = true;
+                document.querySelectorAll('.mood-option').forEach(opt => {
+                    opt.style.cursor = 'default';
+                    opt.onclick = null;
+                });
+            }
+
+            getTodayKey() {
+                const today = new Date();
+                return today.toISOString().split('T')[0];
+            }
+
+            checkTodayMood() {
+                const today = this.getTodayKey();
+                if (this.moods[today]) {
+                    // Humeur déjà enregistrée aujourd'hui
+                    const todayMood = this.moods[today];
+                    document.querySelectorAll('.mood-option').forEach(opt => {
+                        if (opt.dataset.emoji === todayMood.emoji) {
+                            opt.classList.add('selected');
+                        }
+                        opt.style.cursor = 'default';
+                        opt.onclick = null;
+                    });
+                    document.getElementById('save-btn').disabled = true;
+                    this.showMessage('Vous avez déjà enregistré votre humeur aujourd\'hui !');
+                }
+            }
+
+            showMessage(text) {
+                const message = document.getElementById('message');
+                message.textContent = text;
+                message.className = 'message success';
+                setTimeout(() => {
+                    message.style.display = 'none';
+                }, 3000);
+            }
+
+            displayHistory() {
+                const calendar = document.getElementById('calendar');
+                const emptyHistory = document.getElementById('empty-history');
+
+                const sortedDates = Object.keys(this.moods).sort().reverse();
+
+                if (sortedDates.length === 0) {
+                    calendar.style.display = 'none';
+                    emptyHistory.style.display = 'block';
+                    document.getElementById('stats').style.display = 'none';
+                    return;
+                }
+
+                calendar.style.display = 'grid';
+                emptyHistory.style.display = 'none';
+                document.getElementById('stats').style.display = 'grid';
+                calendar.innerHTML = '';
+
+                sortedDates.forEach(date => {
+                    const mood = this.moods[date];
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+
+                    const dateObj = new Date(date + 'T12:00:00');
+                    const formattedDate = dateObj.toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit'
+                    });
+
+                    dayElement.innerHTML = `
+                        <div class="calendar-date">${formattedDate}</div>
+                        <div class="calendar-mood">${mood.emoji}</div>
+                    `;
+                    calendar.appendChild(dayElement);
+                });
+
+                this.displayStats();
+            }
+
+            displayStats() {
+                const stats = document.getElementById('stats');
+                const moodCounts = {};
+                const moodEmojis = {
+                    '5': '😄',
+                    '4': '🙂',
+                    '3': '😐',
+                    '2': '😕',
+                    '1': '😢'
+                };
+
+                Object.values(this.moods).forEach(mood => {
+                    moodCounts[mood.value] = (moodCounts[mood.value] || 0) + 1;
+                });
+
+                const mostFrequent = Object.entries(moodCounts)
+                    .sort((a, b) => b[1] - a[1])[0];
+
+                const totalDays = Object.keys(this.moods).length;
+                const avgMood = Object.values(this.moods)
+                    .reduce((sum, mood) => sum + parseInt(mood.value), 0) / totalDays;
+
+                stats.innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-emoji">📆</div>
+                        <div class="stat-value">${totalDays}</div>
+                        <div class="stat-label">Jours enregistrés</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-emoji">${mostFrequent ? moodEmojis[mostFrequent[0]] : '😐'}</div>
+                        <div class="stat-value">${mostFrequent ? mostFrequent[1] : 0}</div>
+                        <div class="stat-label">Humeur la plus fréquente</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-emoji">📊</div>
+                        <div class="stat-value">${avgMood.toFixed(1)}/5</div>
+                        <div class="stat-label">Moyenne générale</div>
+                    </div>
+                `;
+            }
+
+            loadMoods() {
+                const stored = localStorage.getItem('nikoNikoMoods');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            saveMoods() {
+                localStorage.setItem('nikoNikoMoods', JSON.stringify(this.moods));
+            }
+        }
+
+        // Initialiser l'application
+        document.addEventListener('DOMContentLoaded', () => {
+            new NikoNiko();
+        });
+    </script>
+</body>
 </html>
