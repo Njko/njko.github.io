@@ -3,12 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Niko Niko</title>
+    <meta name="description" content="Niko Niko - Calendrier de suivi d'humeur quotidien">
+    <title>Mon Niko Niko - Suivi d'humeur quotidien</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        /* Skip link pour navigation clavier */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 0 0 4px 0;
+            z-index: 100;
+        }
+
+        .skip-link:focus {
+            top: 0;
         }
 
         body {
@@ -30,6 +48,16 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             margin-bottom: 30px;
             animation: fadeIn 0.6s ease-out;
+        }
+
+        /* Respect prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            .card {
+                animation: none;
+            }
+            .mood-emoji {
+                animation: none;
+            }
         }
 
         @keyframes fadeIn {
@@ -88,7 +116,7 @@
 
         .mood-description {
             font-size: 1.1em;
-            color: #999;
+            color: #666; /* Amélioration du contraste de #999 à #666 */
             font-style: italic;
         }
 
@@ -100,14 +128,14 @@
 
         .no-mood {
             padding: 40px;
-            color: #999;
+            color: #666; /* Amélioration du contraste */
             font-size: 1.2em;
             text-align: center;
         }
 
         .error {
             padding: 40px;
-            color: #d32f2f;
+            color: #c62828; /* Amélioration du contraste de #d32f2f */
             font-size: 1.1em;
             text-align: center;
         }
@@ -141,7 +169,7 @@
 
         .stat-mini-label {
             font-size: 0.9em;
-            color: #999;
+            color: #666; /* Amélioration du contraste */
             margin-top: 5px;
         }
 
@@ -179,7 +207,7 @@
         .calendar-day-name {
             text-align: center;
             font-size: 0.75em;
-            color: #999;
+            color: #666; /* Amélioration du contraste */
             font-weight: 600;
             padding: 8px 0;
         }
@@ -201,6 +229,7 @@
             position: relative;
             padding: 4px;
             transition: all 0.3s ease;
+            min-height: 44px; /* Taille minimum de tap accessible */
         }
 
         .calendar-day.empty {
@@ -213,9 +242,12 @@
             cursor: pointer;
         }
 
-        .calendar-day.has-mood:hover {
+        .calendar-day.has-mood:hover,
+        .calendar-day.has-mood:focus {
             transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
         }
 
         .calendar-day.today {
@@ -225,7 +257,7 @@
 
         .calendar-day-number {
             font-size: 0.7em;
-            color: #999;
+            color: #666; /* Amélioration du contraste */
             position: absolute;
             top: 4px;
             left: 6px;
@@ -249,12 +281,48 @@
 
         .no-history {
             text-align: center;
-            color: #999;
+            color: #666; /* Amélioration du contraste */
             padding: 40px;
             font-style: italic;
         }
 
+        /* Focus visible pour navigation clavier */
+        *:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        *:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        *:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        /* Responsive */
         @media (max-width: 600px) {
+            body {
+                padding: 20px 15px;
+            }
+
+            .card {
+                padding: 30px 20px;
+            }
+
+            .mood-emoji {
+                font-size: 5em;
+            }
+
+            .mood-label {
+                font-size: 1.5em;
+            }
+
+            .mood-reason {
+                font-size: 2.5em;
+            }
+
             .calendar-mood-emoji {
                 font-size: 1.4em;
             }
@@ -266,31 +334,35 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+
     <div class="container">
         <!-- Carte humeur du jour -->
-        <div class="card">
-            <div class="title">📊 Mon Niko Niko</div>
-            <div class="date" id="today-date"></div>
+        <main id="main-content">
+            <section class="card" aria-labelledby="today-title">
+                <h1 class="title" id="today-title">📊 Mon Niko Niko</h1>
+                <time class="date" id="today-date" datetime=""></time>
 
-            <div id="content">
-                <div class="loading">Chargement...</div>
-            </div>
-        </div>
+                <div id="content" role="status" aria-live="polite" aria-atomic="true">
+                    <div class="loading" role="alert">Chargement...</div>
+                </div>
+            </section>
 
-        <!-- Carte historique -->
-        <div class="card" id="history-card" style="display: none;">
-            <div class="history-title">📅 Historique des 3 derniers mois</div>
-            <div id="calendar-container"></div>
-        </div>
+            <!-- Carte historique -->
+            <section class="card" id="history-card" style="display: none;" aria-labelledby="history-title">
+                <h2 class="history-title" id="history-title">📅 Historique des 3 derniers mois</h2>
+                <div id="calendar-container" role="region" aria-label="Calendrier des humeurs"></div>
+            </section>
+        </main>
     </div>
 
     <script>
         const MOOD_CONFIG = {
-            '5': { label: 'Excellent', description: 'Une excellente journée !', emoji: '😄' },
-            '4': { label: 'Bien', description: 'Bonne humeur générale', emoji: '🙂' },
-            '3': { label: 'Neutre', description: 'Journée normale', emoji: '😐' },
-            '2': { label: 'Moyen', description: 'Quelques difficultés', emoji: '😕' },
-            '1': { label: 'Difficile', description: 'Journée difficile', emoji: '😢' }
+            '5': { label: 'Excellent', description: 'Une excellente journée !', emoji: '😄', ariaLabel: 'humeur excellente' },
+            '4': { label: 'Bien', description: 'Bonne humeur générale', emoji: '🙂', ariaLabel: 'bonne humeur' },
+            '3': { label: 'Neutre', description: 'Journée normale', emoji: '😐', ariaLabel: 'humeur neutre' },
+            '2': { label: 'Moyen', description: 'Quelques difficultés', emoji: '😕', ariaLabel: 'humeur moyenne' },
+            '1': { label: 'Difficile', description: 'Journée difficile', emoji: '😢', ariaLabel: 'humeur difficile' }
         };
 
         const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -311,8 +383,9 @@
             displayTodayDate() {
                 const today = new Date();
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                document.getElementById('today-date').textContent =
-                    today.toLocaleDateString('fr-FR', options);
+                const dateElement = document.getElementById('today-date');
+                dateElement.textContent = today.toLocaleDateString('fr-FR', options);
+                dateElement.setAttribute('datetime', today.toISOString().split('T')[0]);
             }
 
             async loadMoods() {
@@ -340,16 +413,18 @@
                 const todayMood = this.moods[today];
 
                 if (!todayMood) {
-                    content.innerHTML = '<div class="no-mood">Aucune humeur enregistrée pour aujourd\'hui</div>';
+                    content.innerHTML = '<div class="no-mood" role="status">Aucune humeur enregistrée pour aujourd\'hui</div>';
                     return;
                 }
 
                 const moodConfig = MOOD_CONFIG[todayMood.value];
-                const reasonHTML = todayMood.reason ? `<div class="mood-reason">${todayMood.reason}</div>` : '';
+                const reasonHTML = todayMood.reason
+                    ? `<div class="mood-reason" role="img" aria-label="raison">${todayMood.reason}</div>`
+                    : '';
 
                 content.innerHTML = `
                     <div class="mood-display">
-                        <span class="mood-emoji">${moodConfig.emoji}</span>
+                        <span class="mood-emoji" role="img" aria-label="${moodConfig.ariaLabel}">${moodConfig.emoji}</span>
                         <div class="mood-label">${moodConfig.label}</div>
                         <div class="mood-description">${moodConfig.description}</div>
                         ${reasonHTML}
@@ -366,13 +441,13 @@
                     .reduce((sum, mood) => sum + parseInt(mood.value), 0) / totalDays;
 
                 return `
-                    <div class="stats-mini">
+                    <div class="stats-mini" role="region" aria-label="Statistiques">
                         <div class="stat-mini">
-                            <span class="stat-mini-value">${totalDays}</span>
+                            <span class="stat-mini-value" aria-label="${totalDays} jours enregistrés">${totalDays}</span>
                             <div class="stat-mini-label">jours</div>
                         </div>
                         <div class="stat-mini">
-                            <span class="stat-mini-value">${avgMood.toFixed(1)}/5</span>
+                            <span class="stat-mini-value" aria-label="moyenne ${avgMood.toFixed(1)} sur 5">${avgMood.toFixed(1)}/5</span>
                             <div class="stat-mini-label">moyenne</div>
                         </div>
                     </div>
@@ -417,16 +492,16 @@
 
                 let calendarHTML = `
                     <div class="calendar-section">
-                        <div class="month-title">${monthName}</div>
-                        <div class="calendar-header">
-                            ${DAY_NAMES.map(day => `<div class="calendar-day-name">${day}</div>`).join('')}
+                        <h3 class="month-title">${monthName}</h3>
+                        <div class="calendar-header" role="row">
+                            ${DAY_NAMES.map(day => `<div class="calendar-day-name" role="columnheader">${day}</div>`).join('')}
                         </div>
-                        <div class="calendar-grid">
+                        <div class="calendar-grid" role="grid" aria-label="Calendrier du mois de ${monthName}">
                 `;
 
                 // Jours vides avant le début du mois
                 for (let i = 0; i < firstDayOfWeek; i++) {
-                    calendarHTML += '<div class="calendar-day empty"></div>';
+                    calendarHTML += '<div class="calendar-day empty" role="gridcell" aria-hidden="true"></div>';
                 }
 
                 // Jours du mois
@@ -440,18 +515,31 @@
                     if (mood) dayClass += ' has-mood';
                     if (isToday) dayClass += ' today';
 
+                    const dateLabel = `${day} ${monthDate.toLocaleDateString('fr-FR', { month: 'long' })}`;
+                    let ariaLabel = dateLabel;
+
+                    if (isToday) {
+                        ariaLabel += ', aujourd\'hui';
+                    }
+
+                    if (mood) {
+                        const moodConfig = MOOD_CONFIG[mood.value];
+                        ariaLabel += `, ${moodConfig.ariaLabel}`;
+                    }
+
                     let moodContent = '';
                     if (mood) {
                         const moodConfig = MOOD_CONFIG[mood.value];
                         moodContent = `
-                            <div class="calendar-mood-emoji">${moodConfig.emoji}</div>
-                            ${mood.reason ? `<div class="calendar-reason-emoji">${mood.reason}</div>` : ''}
+                            <div class="calendar-mood-emoji" role="img" aria-hidden="true">${moodConfig.emoji}</div>
+                            ${mood.reason ? `<div class="calendar-reason-emoji" role="img" aria-hidden="true">${mood.reason}</div>` : ''}
                         `;
                     }
 
+                    const tabindex = mood ? '0' : '-1';
                     calendarHTML += `
-                        <div class="${dayClass}">
-                            <div class="calendar-day-number">${day}</div>
+                        <div class="${dayClass}" role="gridcell" aria-label="${ariaLabel}" tabindex="${tabindex}">
+                            <div class="calendar-day-number" aria-hidden="true">${day}</div>
                             ${moodContent}
                         </div>
                     `;
@@ -467,7 +555,7 @@
 
             showError(message) {
                 const content = document.getElementById('content');
-                content.innerHTML = `<div class="error">${message}</div>`;
+                content.innerHTML = `<div class="error" role="alert">${message}</div>`;
             }
         }
 
