@@ -2,20 +2,24 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Mon Niko Niko</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 40px 20px;
+            padding: 20px 15px;
         }
 
         .container {
@@ -25,10 +29,10 @@
 
         .card {
             background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            margin-bottom: 30px;
+            border-radius: 16px;
+            padding: 30px 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
             animation: fadeIn 0.6s ease-out;
         }
 
@@ -44,30 +48,32 @@
         }
 
         .title {
-            font-size: 1.5em;
+            font-size: 1.5rem;
             color: #667eea;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-weight: 600;
             text-align: center;
         }
 
         .date {
-            font-size: 1.2em;
+            font-size: 1rem;
             color: #666;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             text-align: center;
+            line-height: 1.4;
         }
 
         .mood-display {
-            margin: 40px 0;
+            margin: 30px 0;
             text-align: center;
         }
 
         .mood-emoji {
-            font-size: 8em;
+            font-size: 5rem;
             display: block;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             animation: bounce 1s ease-out;
+            line-height: 1;
         }
 
         @keyframes bounce {
@@ -80,81 +86,86 @@
         }
 
         .mood-label {
-            font-size: 2em;
+            font-size: 1.5rem;
             color: #333;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .mood-description {
-            font-size: 1.1em;
+            font-size: 0.95rem;
             color: #999;
             font-style: italic;
+            line-height: 1.4;
         }
 
         .mood-reason {
-            font-size: 3em;
-            margin-top: 30px;
+            font-size: 2.5rem;
+            margin-top: 20px;
             opacity: 0.8;
+            line-height: 1;
         }
 
         .no-mood {
-            padding: 40px;
+            padding: 30px 15px;
             color: #999;
-            font-size: 1.2em;
+            font-size: 1rem;
             text-align: center;
         }
 
         .error {
-            padding: 40px;
+            padding: 30px 15px;
             color: #d32f2f;
-            font-size: 1.1em;
+            font-size: 1rem;
             text-align: center;
         }
 
         .loading {
-            padding: 40px;
+            padding: 30px 15px;
             color: #667eea;
-            font-size: 1.2em;
+            font-size: 1rem;
             text-align: center;
         }
 
         .stats-mini {
-            margin-top: 40px;
-            padding-top: 30px;
+            margin-top: 30px;
+            padding-top: 25px;
             border-top: 2px solid #f0f0f0;
-            display: flex;
-            justify-content: space-around;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
         }
 
         .stat-mini {
             text-align: center;
+            padding: 10px;
         }
 
         .stat-mini-value {
-            font-size: 2em;
+            font-size: 1.75rem;
             font-weight: bold;
             color: #667eea;
             display: block;
+            line-height: 1.2;
         }
 
         .stat-mini-label {
-            font-size: 0.9em;
+            font-size: 0.85rem;
             color: #999;
             margin-top: 5px;
         }
 
         /* Calendrier */
         .history-title {
-            font-size: 1.3em;
+            font-size: 1.2rem;
             color: #667eea;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             font-weight: 600;
+            text-align: center;
         }
 
         .calendar-section {
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .calendar-section:last-child {
@@ -162,32 +173,32 @@
         }
 
         .month-title {
-            font-size: 1.1em;
+            font-size: 1rem;
             color: #333;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-align: center;
         }
 
         .calendar-header {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 6px;
+            margin-bottom: 6px;
         }
 
         .calendar-day-name {
             text-align: center;
-            font-size: 0.75em;
+            font-size: 0.7rem;
             color: #999;
             font-weight: 600;
-            padding: 8px 0;
+            padding: 6px 0;
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            gap: 6px;
         }
 
         .calendar-day {
@@ -199,8 +210,9 @@
             border-radius: 8px;
             background: #f8f9fa;
             position: relative;
-            padding: 4px;
+            padding: 4px 2px;
             transition: all 0.3s ease;
+            min-height: 50px;
         }
 
         .calendar-day.empty {
@@ -213,9 +225,8 @@
             cursor: pointer;
         }
 
-        .calendar-day.has-mood:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        .calendar-day.has-mood:active {
+            transform: scale(0.95);
         }
 
         .calendar-day.today {
@@ -224,11 +235,12 @@
         }
 
         .calendar-day-number {
-            font-size: 0.7em;
+            font-size: 0.65rem;
             color: #999;
             position: absolute;
-            top: 4px;
-            left: 6px;
+            top: 3px;
+            left: 5px;
+            line-height: 1;
         }
 
         .calendar-day.has-mood .calendar-day-number {
@@ -237,30 +249,195 @@
         }
 
         .calendar-mood-emoji {
-            font-size: 1.8em;
+            font-size: 1.5rem;
             margin-top: 8px;
+            line-height: 1;
         }
 
         .calendar-reason-emoji {
-            font-size: 0.9em;
+            font-size: 0.8rem;
             margin-top: 2px;
             opacity: 0.7;
+            line-height: 1;
         }
 
         .no-history {
             text-align: center;
             color: #999;
-            padding: 40px;
+            padding: 30px 15px;
             font-style: italic;
+            font-size: 0.95rem;
         }
 
-        @media (max-width: 600px) {
-            .calendar-mood-emoji {
-                font-size: 1.4em;
+        /* Media Queries pour tablettes */
+        @media (min-width: 601px) {
+            body {
+                padding: 40px 20px;
+            }
+
+            .card {
+                padding: 40px;
+                border-radius: 20px;
+                margin-bottom: 30px;
+            }
+
+            .title {
+                font-size: 1.75rem;
+                margin-bottom: 30px;
+            }
+
+            .date {
+                font-size: 1.2rem;
+                margin-bottom: 40px;
+            }
+
+            .mood-emoji {
+                font-size: 8rem;
+                margin-bottom: 20px;
+            }
+
+            .mood-label {
+                font-size: 2rem;
+            }
+
+            .mood-description {
+                font-size: 1.1rem;
+            }
+
+            .mood-reason {
+                font-size: 3rem;
+                margin-top: 30px;
+            }
+
+            .stats-mini {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                margin-top: 40px;
+                padding-top: 30px;
+            }
+
+            .stat-mini-value {
+                font-size: 2rem;
+            }
+
+            .stat-mini-label {
+                font-size: 0.9rem;
+            }
+
+            .history-title {
+                font-size: 1.3rem;
+                margin-bottom: 30px;
+            }
+
+            .month-title {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+            }
+
+            .calendar-header {
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+
+            .calendar-grid {
+                gap: 8px;
+            }
+
+            .calendar-day-name {
+                font-size: 0.75rem;
+                padding: 8px 0;
+            }
+
+            .calendar-day {
+                padding: 4px;
+                border-radius: 8px;
+            }
+
+            .calendar-day.has-mood:hover {
+                transform: scale(1.05);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
             }
 
             .calendar-day-number {
-                font-size: 0.65em;
+                font-size: 0.7rem;
+                top: 4px;
+                left: 6px;
+            }
+
+            .calendar-mood-emoji {
+                font-size: 1.8rem;
+            }
+
+            .calendar-reason-emoji {
+                font-size: 0.9rem;
+            }
+
+            .calendar-section {
+                margin-bottom: 40px;
+            }
+
+            .no-mood,
+            .error,
+            .loading {
+                padding: 40px;
+                font-size: 1.2rem;
+            }
+
+            .no-history {
+                padding: 40px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Petits écrans (iPhone SE, etc.) */
+        @media (max-width: 375px) {
+            body {
+                padding: 15px 10px;
+            }
+
+            .card {
+                padding: 25px 15px;
+                border-radius: 12px;
+            }
+
+            .title {
+                font-size: 1.3rem;
+            }
+
+            .date {
+                font-size: 0.9rem;
+            }
+
+            .mood-emoji {
+                font-size: 4rem;
+            }
+
+            .mood-label {
+                font-size: 1.3rem;
+            }
+
+            .mood-description {
+                font-size: 0.9rem;
+            }
+
+            .mood-reason {
+                font-size: 2rem;
+            }
+
+            .calendar-mood-emoji {
+                font-size: 1.2rem;
+            }
+
+            .calendar-reason-emoji {
+                font-size: 0.7rem;
+            }
+
+            .calendar-day {
+                min-height: 45px;
+            }
+
+            .stat-mini-value {
+                font-size: 1.5rem;
             }
         }
     </style>
