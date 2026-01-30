@@ -286,6 +286,49 @@
             font-style: italic;
         }
 
+        /* Moyenne mensuelle */
+        .month-average {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #dee2e6;
+        }
+
+        .month-average-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .month-average-value {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .month-average-emoji {
+            font-size: 2em;
+        }
+
+        .month-average-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .month-average-description {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
         /* Focus visible pour navigation clavier */
         *:focus {
             outline: 3px solid #667eea;
@@ -477,6 +520,42 @@
                 container.innerHTML = months.map(month => this.generateMonthHTML(month)).join('');
             }
 
+            calculateMonthAverage(year, month) {
+                const monthMoods = [];
+
+                // Récupérer tous les moods du mois
+                Object.keys(this.moods).forEach(dateKey => {
+                    const [moodYear, moodMonth] = dateKey.split('-').map(Number);
+                    if (moodYear === year && moodMonth === month + 1) {
+                        monthMoods.push(parseInt(this.moods[dateKey].value));
+                    }
+                });
+
+                if (monthMoods.length === 0) return null;
+
+                const average = monthMoods.reduce((sum, value) => sum + value, 0) / monthMoods.length;
+                return {
+                    value: average,
+                    count: monthMoods.length
+                };
+            }
+
+            getAverageEmoji(average) {
+                if (average >= 4.5) return '😄';
+                if (average >= 3.5) return '🙂';
+                if (average >= 2.5) return '😐';
+                if (average >= 1.5) return '😕';
+                return '😢';
+            }
+
+            getAverageDescription(average) {
+                if (average >= 4.5) return 'Excellent mois !';
+                if (average >= 3.5) return 'Bon mois';
+                if (average >= 2.5) return 'Mois moyen';
+                if (average >= 1.5) return 'Mois difficile';
+                return 'Mois très difficile';
+            }
+
             generateMonthHTML(monthDate) {
                 const year = monthDate.getFullYear();
                 const month = monthDate.getMonth();
@@ -547,6 +626,26 @@
 
                 calendarHTML += `
                         </div>
+                `;
+
+                // Calculer et afficher la moyenne du mois
+                const monthAvg = this.calculateMonthAverage(year, month);
+                if (monthAvg) {
+                    const avgEmoji = this.getAverageEmoji(monthAvg.value);
+                    const avgDescription = this.getAverageDescription(monthAvg.value);
+                    calendarHTML += `
+                        <div class="month-average" role="region" aria-label="Moyenne du mois">
+                            <div class="month-average-label">Moyenne du mois</div>
+                            <div class="month-average-value">
+                                <span class="month-average-emoji" role="img" aria-label="${avgDescription}">${avgEmoji}</span>
+                                <span class="month-average-number">${monthAvg.value.toFixed(1)}/5</span>
+                            </div>
+                            <div class="month-average-description">${avgDescription} (${monthAvg.count} jour${monthAvg.count > 1 ? 's' : ''})</div>
+                        </div>
+                    `;
+                }
+
+                calendarHTML += `
                     </div>
                 `;
 
