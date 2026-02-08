@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#2c3e50">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="description" content="Niko Niko - Calendrier de suivi d'humeur quotidien">
@@ -21,7 +21,7 @@
             position: absolute;
             top: -40px;
             left: 0;
-            background: #667eea;
+            background: #e67e22;
             color: white;
             padding: 8px 16px;
             text-decoration: none;
@@ -35,7 +35,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
             min-height: 100vh;
             padding: 1.25rem 0.9375rem;
         }
@@ -46,12 +46,13 @@
         }
 
         .card {
-            background: white;
-            border-radius: 1rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
             padding: 1.875rem 1.25rem;
-            box-shadow: 0 0.625rem 2.5rem rgba(0, 0, 0, 0.2);
+            box-shadow: 0 0.625rem 2.5rem rgba(0, 0, 0, 0.3);
             margin-bottom: 1.25rem;
             animation: fadeIn 0.6s ease-out;
+            border-left: 4px solid #e67e22;
         }
 
         /* Respect prefers-reduced-motion */
@@ -77,10 +78,13 @@
 
         .title {
             font-size: 1.5rem;
-            color: #667eea;
+            color: #e67e22;
             margin-bottom: 1.25rem;
-            font-weight: 600;
+            font-weight: 700;
             text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .date {
@@ -150,7 +154,7 @@
 
         .loading {
             padding: 1.875rem 0.9375rem;
-            color: #667eea;
+            color: #e67e22;
             font-size: 1rem;
             text-align: center;
         }
@@ -172,7 +176,7 @@
         .stat-mini-value {
             font-size: 1.75rem;
             font-weight: bold;
-            color: #667eea;
+            color: #e67e22;
             display: block;
             line-height: 1.2;
         }
@@ -186,10 +190,13 @@
         /* Calendrier */
         .history-title {
             font-size: 1.2rem;
-            color: #667eea;
+            color: #e67e22;
             margin-bottom: 1.5625rem;
-            font-weight: 600;
+            font-weight: 700;
             text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .calendar-section {
@@ -248,8 +255,8 @@
         }
 
         .calendar-day.has-mood {
-            background: linear-gradient(135deg, #f0f0ff 0%, #fff 100%);
-            border: 2px solid #e0e0ff;
+            background: linear-gradient(135deg, #fff5e6 0%, #fff 100%);
+            border: 2px solid #ffd4a3;
             cursor: pointer;
         }
 
@@ -258,7 +265,7 @@
         }
 
         .calendar-day.today {
-            border: 2px solid #667eea;
+            border: 2px solid #e67e22;
             font-weight: bold;
         }
 
@@ -272,7 +279,7 @@
         }
 
         .calendar-day.has-mood .calendar-day-number {
-            color: #667eea;
+            color: #e67e22;
             font-weight: 600;
         }
 
@@ -302,18 +309,20 @@
             margin-top: 1.25rem;
             padding: 0.9375rem 1.25rem;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 0.75rem;
+            border-radius: 0.5rem;
             text-align: center;
-            border: 2px solid #dee2e6;
+            border: 2px solid #e67e22;
+            border-left: 4px solid #e67e22;
         }
 
         .month-average-label {
-            font-size: 0.75rem;
-            color: #666;
+            font-size: 0.7rem;
+            color: #e67e22;
             margin-bottom: 0.5rem;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.03125rem;
+            letter-spacing: 0.08em;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         .month-average-value {
@@ -330,7 +339,7 @@
         .month-average-number {
             font-size: 1.375rem;
             font-weight: bold;
-            color: #667eea;
+            color: #e67e22;
         }
 
         .month-average-description {
@@ -342,7 +351,7 @@
 
         /* Focus visible pour navigation clavier */
         *:focus {
-            outline: 3px solid #667eea;
+            outline: 3px solid #e67e22;
             outline-offset: 2px;
         }
 
@@ -351,7 +360,7 @@
         }
 
         *:focus-visible {
-            outline: 3px solid #667eea;
+            outline: 3px solid #e67e22;
             outline-offset: 2px;
         }
 
