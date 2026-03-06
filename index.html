@@ -260,6 +260,11 @@
             cursor: pointer;
         }
 
+        .calendar-day.vacation {
+            background: linear-gradient(135deg, #e8f5e9 0%, #fff 100%);
+            border: 2px solid #a5d6a7;
+        }
+
         .calendar-day.has-mood:active {
             transform: scale(0.95);
         }
@@ -753,6 +758,7 @@
 
                     let dayClass = 'calendar-day';
                     if (mood) dayClass += ' has-mood';
+                    if (mood && mood.vacation) dayClass += ' vacation';
                     if (isToday) dayClass += ' today';
 
                     const dateLabel = `${day} ${monthDate.toLocaleDateString('fr-FR', { month: 'long' })}`;
@@ -765,6 +771,9 @@
                     if (mood) {
                         const moodConfig = MOOD_CONFIG[mood.value];
                         ariaLabel += `, ${moodConfig.ariaLabel}`;
+                        if (mood.vacation) {
+                            ariaLabel += ', en vacances';
+                        }
                     }
 
                     let moodContent = '';
