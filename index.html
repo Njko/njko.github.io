@@ -265,6 +265,11 @@
             border: 2px solid #a5d6a7;
         }
 
+        .calendar-day.weekend {
+            background: linear-gradient(135deg, #e3f2fd 0%, #fff 100%);
+            border: 2px solid #90caf9;
+        }
+
         .calendar-day.has-mood:active {
             transform: scale(0.95);
         }
@@ -756,9 +761,15 @@
                     const mood = this.moods[dateKey];
                     const isToday = dateKey === today;
 
+                    // Déterminer si c'est un week-end (samedi = 6, dimanche = 0)
+                    const currentDate = new Date(year, month, day);
+                    const dayOfWeek = currentDate.getDay();
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
                     let dayClass = 'calendar-day';
                     if (mood) dayClass += ' has-mood';
                     if (mood && mood.vacation) dayClass += ' vacation';
+                    if (isWeekend) dayClass += ' weekend';
                     if (isToday) dayClass += ' today';
 
                     const dateLabel = `${day} ${monthDate.toLocaleDateString('fr-FR', { month: 'long' })}`;
@@ -766,6 +777,10 @@
 
                     if (isToday) {
                         ariaLabel += ', aujourd\'hui';
+                    }
+
+                    if (isWeekend) {
+                        ariaLabel += ', week-end';
                     }
 
                     if (mood) {
