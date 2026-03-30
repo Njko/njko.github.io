@@ -63,6 +63,12 @@
             .mood-emoji {
                 animation: none;
             }
+            .histogram-bar {
+                transition: none;
+            }
+            .timeline-bar {
+                transition: none;
+            }
         }
 
         @keyframes fadeIn {
@@ -359,6 +365,274 @@
             font-style: italic;
         }
 
+        /* Histogramme */
+        .histogram-description {
+            font-size: 0.8125rem;
+            color: #666;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .histogram {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 10rem;
+            gap: 0.75rem;
+            padding: 0 0.5rem;
+        }
+
+        .histogram-bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 4rem;
+            height: 100%;
+        }
+
+        .histogram-bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            width: 100%;
+        }
+
+        .histogram-count {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 0.25rem;
+            font-weight: bold;
+        }
+
+        .histogram-bar {
+            width: 100%;
+            border-radius: 0.25rem 0.25rem 0 0;
+            min-height: 2px;
+            transition: height 0.6s ease-out;
+        }
+
+        .histogram-bar.mood-1 { background: linear-gradient(180deg, #e74c3c, #c0392b); }
+        .histogram-bar.mood-2 { background: linear-gradient(180deg, #e67e22, #d35400); }
+        .histogram-bar.mood-3 { background: linear-gradient(180deg, #f1c40f, #d4ac0d); }
+        .histogram-bar.mood-4 { background: linear-gradient(180deg, #2ecc71, #27ae60); }
+        .histogram-bar.mood-5 { background: linear-gradient(180deg, #27ae60, #1e8449); }
+
+        .histogram-label {
+            font-size: 1.2rem;
+            margin-top: 0.375rem;
+            text-align: center;
+        }
+
+        .histogram-legend {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.75rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        /* Timeline des scores d'humeur */
+        .timeline-description {
+            font-size: 0.8125rem;
+            color: #666;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-chart {
+            position: relative;
+            height: 10rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .timeline-bars {
+            display: flex;
+            align-items: flex-end;
+            height: 100%;
+            min-width: 100%;
+            gap: 2px;
+            padding: 0 0.25rem;
+        }
+
+        .timeline-bar-group {
+            flex: 1;
+            min-width: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            height: 100%;
+            position: relative;
+        }
+
+        .timeline-bar {
+            width: 100%;
+            background: #7f8c8d;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.4s ease-out;
+        }
+
+        .timeline-day-label {
+            font-size: 0.5rem;
+            color: #999;
+            margin-top: 0.1875rem;
+            line-height: 1;
+        }
+
+        .timeline-bar.weekend {
+            background: #5dade2;
+        }
+
+        .timeline-bar.vacation {
+            background: #58d68d;
+        }
+
+        .timeline-day-label.weekend {
+            color: #5dade2;
+        }
+
+        .timeline-day-label.vacation {
+            color: #58d68d;
+        }
+
+        .timeline-month-sep {
+            flex: 0 0 1px;
+            width: 1px;
+            height: 100%;
+            background: #ccc;
+        }
+
+        .timeline-midline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 60%;
+            height: 0;
+            border-bottom: 2px dashed #999;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+
+        .timeline-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 0.5rem);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: #fff;
+            padding: 0.375rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.6875rem;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .timeline-bar-group:hover .timeline-tooltip,
+        .timeline-bar-group:focus-within .timeline-tooltip {
+            display: block;
+        }
+
+        /* Modale */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            max-width: 22rem;
+            width: 100%;
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-emoji {
+            font-size: 2.5rem;
+        }
+
+        .modal-date {
+            font-size: 0.8125rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .modal-score {
+            font-size: 0.875rem;
+            color: #e67e22;
+            font-weight: bold;
+            margin-top: 0.25rem;
+        }
+
+        .modal-interpretations {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1rem 0;
+        }
+
+        .modal-interpretations li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.875rem;
+            color: #333;
+        }
+
+        .modal-interpretations li:last-child {
+            border-bottom: none;
+        }
+
+        .modal-interpretations li::before {
+            content: '• ';
+            color: #e67e22;
+        }
+
+        .modal-disclaimer {
+            font-size: 0.6875rem;
+            color: #999;
+            font-style: italic;
+            text-align: center;
+        }
+
         /* Focus visible pour navigation clavier */
         *:focus {
             outline: 3px solid #e67e22;
@@ -492,6 +766,35 @@
                 padding: 2.5rem;
                 font-size: 1rem;
             }
+
+            .histogram {
+                height: 12rem;
+                gap: 1rem;
+            }
+
+            .histogram-count {
+                font-size: 0.8125rem;
+            }
+
+            .histogram-label {
+                font-size: 1.4rem;
+            }
+
+            .histogram-legend {
+                font-size: 0.8125rem;
+            }
+
+            .timeline-chart {
+                height: 14rem;
+            }
+
+            .timeline-bar-group {
+                min-width: 8px;
+            }
+
+            .timeline-bar-group:hover .timeline-tooltip {
+                display: block;
+            }
         }
 
         /* Petits écrans (iPhone SE, etc.) */
@@ -544,6 +847,27 @@
             .stat-mini-value {
                 font-size: 1.5rem;
             }
+
+            .histogram {
+                height: 8rem;
+                gap: 0.375rem;
+            }
+
+            .histogram-count {
+                font-size: 0.6875rem;
+            }
+
+            .histogram-label {
+                font-size: 1rem;
+            }
+
+            .timeline-chart {
+                height: 9rem;
+            }
+
+            .timeline-bar-group {
+                min-width: 4px;
+            }
         }
     </style>
 </head>
@@ -560,6 +884,18 @@
                 <div id="content" role="status" aria-live="polite" aria-atomic="true">
                     <div class="loading" role="alert">Chargement...</div>
                 </div>
+            </section>
+
+            <!-- Carte histogramme des humeurs -->
+            <section class="card" id="histogram-card" style="display: none;" aria-labelledby="histogram-title">
+                <h2 class="history-title" id="histogram-title">📊 Répartition des humeurs</h2>
+                <div id="histogram-container"></div>
+            </section>
+
+            <!-- Carte timeline des variations -->
+            <section class="card" id="timeline-card" style="display: none;" aria-labelledby="timeline-title">
+                <h2 class="history-title" id="timeline-title">📈 Évolution de l'humeur</h2>
+                <div id="timeline-container"></div>
             </section>
 
             <!-- Carte historique -->
@@ -581,6 +917,50 @@
 
         const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
+        const EMOJI_INTERPRETATIONS = {
+            '🧑‍💻': ['Journée de code / dev perso', 'Travail technique stimulant', 'Session de programmation'],
+            '👨‍💻': ['Journée de travail au bureau', 'Tâches professionnelles', 'Travail sur ordinateur'],
+            '👨‍🔧': ['Réparations / bricolage', 'Problèmes techniques à résoudre', 'Maintenance pénible'],
+            '🏴‍☠️': ['Piratage informatique / intrusion', 'Chaos lié à une cyberattaque', 'Compromission d\'un appareil personnel'],
+            '🏠': ['Journée à la maison', 'Repos domestique', 'Tâches ménagères'],
+            '🚴‍♂️': ['Sortie vélo / sport', 'Activité physique en plein air', 'Balade à vélo'],
+            '️🚴‍♂️': ['Sortie vélo / sport', 'Activité physique en plein air', 'Balade à vélo'],
+            '🌍': ['Voyage ou déplacement', 'Ouverture sur le monde', 'Exploration'],
+            '👥': ['Interactions sociales', 'Réunions ou rencontres', 'Journée avec du monde'],
+            '😴': ['Fatigue / manque de sommeil', 'Journée peu énergique', 'Besoin de repos'],
+            '😥': ['Tristesse ou déception', 'Moment émotionnel difficile', 'Journée éprouvante'],
+            '👨‍⚕️': ['Rendez-vous médical', 'Problème de santé', 'Visite chez le médecin'],
+            '😬': ['Stress ou anxiété', 'Situation gênante', 'Tension nerveuse'],
+            '🙅‍♂️': ['Besoin urgent de tout arrêter', 'Saturation totale / plus de capacité', 'Abandon temporaire pour se préserver'],
+            '🏙️': ['Sortie en ville', 'Journée urbaine agréable', 'Exploration citadine'],
+            '🫃': ['Inconfort physique', 'Mal au ventre / ballonnements', 'Journée difficile physiquement'],
+            '👩‍🏫': ['Formation ou apprentissage', 'Journée d\'enseignement', 'Transmission de savoir'],
+            '🪟': ['Nouvelle perspective', 'Fenêtre d\'opportunité', 'Changement de point de vue'],
+            '🕹️': ['Session jeux vidéo', 'Détente gaming', 'Moment ludique'],
+            '🙉': ['Refus d\'écouter / surcharge', 'Trop de bruit ou stimuli', 'Besoin de se couper du monde'],
+            '🫨': ['Choc ou surprise désagréable', 'Sensation de vertige', 'Journée déstabilisante'],
+            '😡': ['Colère ou frustration forte', 'Conflit ou injustice', 'Journée très irritante'],
+            '🛍️': ['Shopping ou courses', 'Sortie achats', 'Journée commerciale'],
+            '😤': ['Agacement ou frustration', 'Impatience', 'Énervement contenu'],
+            '😵‍💫': ['Confusion ou surcharge mentale', 'Vertige / étourdissement', 'Journée chaotique'],
+            '🚗': ['Trajet en voiture', 'Route / déplacement', 'Voyage routier'],
+            '🥴': ['Malaise physique', 'Pas dans son assiette', 'Inconfort général'],
+            '🤢': ['Nausée ou maladie', 'Malaise digestif', 'Journée de convalescence'],
+            '🛠️': ['Bricolage / réparations', 'Résolution de problèmes', 'Travail manuel'],
+            '😫': ['Épuisement total', 'Journée accablante', 'À bout de forces'],
+            '😒': ['Lassitude ou ennui', 'Journée décevante', 'Manque de motivation'],
+            '🗳️': ['Vote ou élection', 'Engagement citoyen', 'Participation démocratique'],
+            '😔': ['Tristesse légère', 'Mélancolie', 'Journée morose'],
+            '➕': ['Quelque chose en plus', 'Ajout positif', 'Bonus ou bonne surprise'],
+            '🧪': ['Expérimentation / tests', 'Essai de quelque chose de nouveau', 'Travail de recherche'],
+            '🫩': ['Éponge / absorption', 'Journée chargée émotionnellement', 'Sentiment d\'être vidé'],
+            '🧹': ['Ménage / rangement', 'Nettoyage de printemps', 'Mise en ordre'],
+            '🤖': ['IA ou automatisation', 'Travail avec des machines', 'Expérimentation tech'],
+            '🤕': ['Blessure ou douleur', 'Mal de tête', 'Journée physiquement difficile'],
+            '💊': ['Prise de médicaments', 'Traitement médical', 'Suivi de santé'],
+            '👨‍👩‍👧‍👦': ['Journée en famille', 'Moment avec les proches', 'Activité familiale']
+        };
+
         class NikoNiko {
             constructor() {
                 this.moods = {};
@@ -591,6 +971,8 @@
                 this.displayTodayDate();
                 await this.loadMoods();
                 this.displayTodayMood();
+                this.displayHistogram();
+                this.displayTimeline();
                 this.displayCalendar();
             }
 
@@ -668,6 +1050,123 @@
                 `;
             }
 
+            calculateMoodDistribution() {
+                const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+                Object.values(this.moods).forEach(mood => {
+                    const value = parseInt(mood.value);
+                    if (value >= 1 && value <= 5) {
+                        distribution[value]++;
+                    }
+                });
+                return distribution;
+            }
+
+            displayHistogram() {
+                const card = document.getElementById('histogram-card');
+                const container = document.getElementById('histogram-container');
+
+                if (Object.keys(this.moods).length === 0) {
+                    card.style.display = 'none';
+                    return;
+                }
+
+                const distribution = this.calculateMoodDistribution();
+                const maxCount = Math.max(...Object.values(distribution), 1);
+
+                const barsHTML = [1, 2, 3, 4, 5].map(level => {
+                    const count = distribution[level];
+                    const heightPercent = (count / maxCount) * 100;
+                    const emoji = MOOD_CONFIG[String(level)].emoji;
+                    return `
+                        <div class="histogram-bar-group">
+                            <div class="histogram-bar-wrapper">
+                                <span class="histogram-count">${count}</span>
+                                <div class="histogram-bar mood-${level}" style="height: ${heightPercent}%"></div>
+                            </div>
+                            <span class="histogram-label">${emoji}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                const totalDays = Object.values(distribution).reduce((a, b) => a + b, 0);
+                container.innerHTML = `
+                    <p class="histogram-description">Nombre de jours par niveau d'humeur</p>
+                    <div class="histogram" role="img" aria-label="Histogramme : répartition des humeurs sur ${totalDays} jours">
+                        ${barsHTML}
+                    </div>
+                    <div class="histogram-legend">
+                        <span>😢 Difficile</span>
+                        <span>😄 Excellent</span>
+                    </div>
+                `;
+
+                card.style.display = '';
+            }
+
+            formatDateShort(dateStr) {
+                const [, month, day] = dateStr.split('-');
+                return `${parseInt(day)}/${parseInt(month)}`;
+            }
+
+            displayTimeline() {
+                const card = document.getElementById('timeline-card');
+                const container = document.getElementById('timeline-container');
+
+                const dates = Object.keys(this.moods).sort();
+                if (dates.length === 0) {
+                    card.style.display = 'none';
+                    return;
+                }
+
+                const entries = dates.map(d => ({
+                    date: d,
+                    value: parseInt(this.moods[d].value),
+                    emoji: MOOD_CONFIG[this.moods[d].value].emoji
+                }));
+
+                const barsHTML = [];
+                let lastMonth = '';
+                entries.forEach(e => {
+                    const [, m, d] = e.date.split('-');
+                    const day = parseInt(d);
+                    const reason = this.moods[e.date].reason || '';
+                    const reasonText = reason ? ` ${reason}` : '';
+                    const tooltipText = `${this.formatDateShort(e.date)} : ${e.emoji} ${e.value}/5${reasonText}`;
+
+                    // Month separator
+                    if (lastMonth && m !== lastMonth) {
+                        barsHTML.push('<div class="timeline-month-sep"></div>');
+                    }
+                    lastMonth = m;
+
+                    const dateObj = new Date(e.date);
+                    const dayOfWeek = dateObj.getDay();
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                    const isVacation = this.moods[e.date].vacation === true;
+                    const barClass = isVacation ? 'vacation' : isWeekend ? 'weekend' : '';
+                    const heightPercent = (e.value / 5) * 100;
+                    barsHTML.push(`
+                        <div class="timeline-bar-group" tabindex="0" aria-label="${tooltipText}">
+                            <div class="timeline-tooltip">${tooltipText}</div>
+                            <div class="timeline-bar ${barClass}" style="height: ${heightPercent}%"></div>
+                            <span class="timeline-day-label ${barClass}">${day}</span>
+                        </div>
+                    `);
+                });
+
+                container.innerHTML = `
+                    <p class="timeline-description">Score d'humeur au fil du temps</p>
+                    <div class="timeline-chart" role="img" aria-label="Évolution des scores d'humeur sur ${entries.length} jours">
+                        <div class="timeline-midline"></div>
+                        <div class="timeline-bars">
+                            ${barsHTML.join('')}
+                        </div>
+                    </div>
+                `;
+
+                card.style.display = '';
+            }
+
             displayCalendar() {
                 const container = document.getElementById('calendar-container');
                 const historyCard = document.getElementById('history-card');
@@ -689,6 +1188,71 @@
                 }
 
                 container.innerHTML = months.map(month => this.generateMonthHTML(month)).join('');
+                this.setupCalendarClicks();
+            }
+
+            setupCalendarClicks() {
+                const container = document.getElementById('calendar-container');
+                const overlay = document.getElementById('modal-overlay');
+                const closeBtn = document.getElementById('modal-close');
+
+                container.addEventListener('click', (e) => {
+                    const dayEl = e.target.closest('.calendar-day.has-mood');
+                    if (!dayEl) return;
+                    this.openMoodModal(dayEl.dataset.date);
+                });
+
+                container.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        const dayEl = e.target.closest('.calendar-day.has-mood');
+                        if (!dayEl) return;
+                        e.preventDefault();
+                        this.openMoodModal(dayEl.dataset.date);
+                    }
+                });
+
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) this.closeMoodModal();
+                });
+
+                closeBtn.addEventListener('click', () => this.closeMoodModal());
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && overlay.style.display !== 'none') {
+                        this.closeMoodModal();
+                    }
+                });
+            }
+
+            openMoodModal(dateKey) {
+                const mood = this.moods[dateKey];
+                if (!mood) return;
+
+                const moodConfig = MOOD_CONFIG[mood.value];
+                const reason = mood.reason || '';
+                const interpretations = EMOJI_INTERPRETATIONS[reason] || [];
+                const dateFormatted = new Date(dateKey).toLocaleDateString('fr-FR', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                });
+
+                document.getElementById('modal-emoji').textContent = reason || moodConfig.emoji;
+                document.getElementById('modal-date').textContent = dateFormatted;
+                document.getElementById('modal-score').textContent = `${moodConfig.emoji} ${moodConfig.label} (${mood.value}/5)`;
+
+                const list = document.getElementById('modal-interpretations');
+                if (interpretations.length > 0) {
+                    list.innerHTML = interpretations.map(i => `<li>${i}</li>`).join('');
+                    list.style.display = '';
+                } else {
+                    list.innerHTML = '';
+                    list.style.display = 'none';
+                }
+
+                document.getElementById('modal-overlay').style.display = 'flex';
+            }
+
+            closeMoodModal() {
+                document.getElementById('modal-overlay').style.display = 'none';
             }
 
             calculateMonthAverage(year, month) {
@@ -802,7 +1366,7 @@
 
                     const tabindex = mood ? '0' : '-1';
                     calendarHTML += `
-                        <div class="${dayClass}" role="gridcell" aria-label="${ariaLabel}" tabindex="${tabindex}">
+                        <div class="${dayClass}" role="gridcell" aria-label="${ariaLabel}" tabindex="${tabindex}" data-date="${dateKey}">
                             <div class="calendar-day-number" aria-hidden="true">${day}</div>
                             ${moodContent}
                         </div>
@@ -847,5 +1411,18 @@
             new NikoNiko();
         });
     </script>
+
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal" role="dialog" aria-labelledby="modal-title">
+            <button class="modal-close" id="modal-close" aria-label="Fermer">&times;</button>
+            <div class="modal-header">
+                <div class="modal-emoji" id="modal-emoji"></div>
+                <div class="modal-date" id="modal-date"></div>
+                <div class="modal-score" id="modal-score"></div>
+            </div>
+            <ul class="modal-interpretations" id="modal-interpretations"></ul>
+            <p class="modal-disclaimer">Ces interprétations sont des pistes de réflexion, pas une vérité absolue.</p>
+        </div>
+    </div>
 </body>
 </html>
