@@ -207,6 +207,17 @@
             margin-bottom: 0;
         }
 
+        .calendar-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -1.25rem;
+            padding: 0 1.25rem;
+        }
+
+        .calendar-content {
+            min-width: 300px;
+        }
+
         .month-title {
             font-size: 1rem;
             color: #333;
@@ -544,6 +555,45 @@
             .stat-mini-value {
                 font-size: 1.5rem;
             }
+
+            .calendar-wrapper {
+                margin: 0 -0.9375rem;
+                padding: 0 0.9375rem;
+            }
+
+            .calendar-content {
+                min-width: 320px;
+            }
+        }
+
+        /* Écrans moyens (iPhone 13 mini, etc.) */
+        @media (max-width: 600px) {
+            .calendar-wrapper {
+                scrollbar-width: thin;
+                scrollbar-color: #e67e22 #f0f0f0;
+            }
+
+            .calendar-wrapper::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .calendar-wrapper::-webkit-scrollbar-track {
+                background: #f0f0f0;
+                border-radius: 4px;
+            }
+
+            .calendar-wrapper::-webkit-scrollbar-thumb {
+                background: #e67e22;
+                border-radius: 4px;
+            }
+
+            .calendar-wrapper::-webkit-scrollbar-thumb:hover {
+                background: #d35400;
+            }
+
+            .calendar-content {
+                min-width: 350px;
+            }
         }
     </style>
 </head>
@@ -743,10 +793,12 @@
                 let calendarHTML = `
                     <div class="calendar-section">
                         <h3 class="month-title">${monthName}</h3>
-                        <div class="calendar-header" role="row">
-                            ${DAY_NAMES.map(day => `<div class="calendar-day-name" role="columnheader">${day}</div>`).join('')}
-                        </div>
-                        <div class="calendar-grid" role="grid" aria-label="Calendrier du mois de ${monthName}">
+                        <div class="calendar-wrapper">
+                            <div class="calendar-content">
+                                <div class="calendar-header" role="row">
+                                    ${DAY_NAMES.map(day => `<div class="calendar-day-name" role="columnheader">${day}</div>`).join('')}
+                                </div>
+                                <div class="calendar-grid" role="grid" aria-label="Calendrier du mois de ${monthName}">
                 `;
 
                 // Jours vides avant le début du mois
@@ -810,6 +862,8 @@
                 }
 
                 calendarHTML += `
+                                </div>
+                            </div>
                         </div>
                 `;
 
