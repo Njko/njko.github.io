@@ -376,15 +376,28 @@
     },
     "2026-04-13": {
       "value": "5",
-      "reason": "🚗"
+      "reason": "🚗",
+      "vacation": true
     },
     "2026-04-14": {
       "value": "4",
-      "reason": "🚗"
+      "reason": "🚗",
+      "vacation": true
     },
     "2026-04-15": {
       "value": "5",
-      "reason": "🚗"
+      "reason": "🚗",
+      "vacation": true
+    },
+    "2026-04-16": {
+      "value": "5",
+      "reason": "🛍️",
+      "vacation": true
+    },
+    "2026-04-17": {
+      "value": "5",
+      "reason": "🏠",
+      "vacation": true
     }
   }
 }
