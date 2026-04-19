@@ -398,6 +398,16 @@
       "value": "5",
       "reason": "🏠",
       "vacation": true
+    },
+    "2026-04-18": {
+      "value": "3",
+      "reason": "🏦",
+      "vacation": true
+    },
+    "2026-04-19": {
+      "value": "5",
+      "reason": "🧹",
+      "vacation": true
     }
   }
 }
