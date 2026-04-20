@@ -484,7 +484,38 @@
         .timeline-chart-inner {
             position: relative;
             height: 10rem;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: #d4a373 transparent;
+        }
+
+        .timeline-chart-inner::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .timeline-chart-inner::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .timeline-chart-inner::-webkit-scrollbar-thumb {
+            background: #d4a373;
+            border-radius: 3px;
+        }
+
+        .timeline-chart-scroll {
+            position: relative;
+            min-width: 100%;
+            height: 100%;
+        }
+
+        .timeline-chart-inner.grab {
+            cursor: grab;
+        }
+
+        .timeline-chart-inner.grabbing {
+            cursor: grabbing;
+            user-select: none;
         }
 
         .timeline-bars {
@@ -498,7 +529,7 @@
 
         .timeline-bar-group {
             flex: 1;
-            min-width: 6px;
+            min-width: 10px;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -522,7 +553,7 @@
 
         .timeline-day-labels span {
             flex: 1;
-            min-width: 6px;
+            min-width: 10px;
             text-align: center;
         }
 
@@ -531,6 +562,11 @@
             color: #e67e22;
             font-weight: bold;
             text-transform: capitalize;
+        }
+
+        .timeline-month-label-cell {
+            overflow: visible;
+            white-space: nowrap;
         }
 
         .timeline-day-label {
@@ -557,10 +593,17 @@
         }
 
         .timeline-month-sep {
-            flex: 0 0 1px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
             width: 1px;
-            height: 100%;
             background: #ccc;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .timeline-labels-scroll {
+            overflow: hidden;
         }
 
         .timeline-gridline {
@@ -900,7 +943,11 @@
             }
 
             .timeline-bar-group {
-                min-width: 8px;
+                min-width: 12px;
+            }
+
+            .timeline-day-labels span {
+                min-width: 12px;
             }
 
             .timeline-bar-group:hover .timeline-tooltip {
@@ -977,7 +1024,11 @@
             }
 
             .timeline-bar-group {
-                min-width: 4px;
+                min-width: 8px;
+            }
+
+            .timeline-day-labels span {
+                min-width: 8px;
             }
         }
     </style>
@@ -1011,7 +1062,7 @@
 
             <!-- Carte historique -->
             <section class="card" id="history-card" style="display: none;" aria-labelledby="history-title">
-                <h2 class="history-title" id="history-title">📅 Historique des 3 derniers mois</h2>
+                <h2 class="history-title" id="history-title">📅 Historique des 2 derniers mois</h2>
                 <div id="calendar-container" role="region" aria-label="Calendrier des humeurs"></div>
             </section>
         </main>
@@ -1244,8 +1295,10 @@
                 const barsHTML = [];
                 const labelsHTML = [];
                 const monthRanges = [];
+                const monthBoundaryIndices = [];
                 let lastMonth = '';
                 let monthEntryCount = 0;
+                let entryIndex = 0;
                 entries.forEach(e => {
                     const [, m, d] = e.date.split('-');
                     const day = parseInt(d);
@@ -1253,12 +1306,10 @@
                     const reasonText = reason ? ` ${reason}` : '';
                     const tooltipText = `${this.formatDateShort(e.date)} : ${e.emoji} ${e.value}/5${reasonText}`;
 
-                    // Month separator
                     if (lastMonth && m !== lastMonth) {
-                        monthRanges.push({ name: new Date(entries[barsHTML.length - monthEntryCount].date).toLocaleDateString('fr-FR', { month: 'short' }), count: monthEntryCount });
+                        monthRanges.push({ name: new Date(entries[entryIndex - monthEntryCount].date).toLocaleDateString('fr-FR', { month: 'short' }), count: monthEntryCount });
+                        monthBoundaryIndices.push(entryIndex);
                         monthEntryCount = 0;
-                        barsHTML.push('<div class="timeline-month-sep"></div>');
-                        labelsHTML.push('<span class="timeline-day-label" style="flex: 0 0 1px;"></span>');
                     }
                     lastMonth = m;
                     monthEntryCount++;
@@ -1276,13 +1327,24 @@
                         </div>
                     `);
                     labelsHTML.push(`<span class="timeline-day-label ${barClass}">${day}</span>`);
+                    entryIndex++;
                 });
                 // Dernier mois
                 monthRanges.push({ name: new Date(entries[entries.length - 1].date).toLocaleDateString('fr-FR', { month: 'short' }), count: monthEntryCount });
 
-                const monthLabelsHTML = monthRanges.map((mr, i) =>
-                    `${i > 0 ? '<span style="flex: 0 0 1px;"></span>' : ''}<span style="flex: ${mr.count}; text-align: center;">${mr.name}</span>`
-                ).join('');
+                // Générer un span par entrée pour les labels mois (alignement parfait avec les jours)
+                const monthLabelsHTML = [];
+                let monthIdx = 0;
+                let offset = 0;
+                for (const mr of monthRanges) {
+                    const midIdx = offset + Math.floor(mr.count / 2);
+                    for (let j = 0; j < mr.count; j++) {
+                        const idx = offset + j;
+                        monthLabelsHTML.push(`<span class="timeline-day-label timeline-month-label-cell">${idx === midIdx ? mr.name : ''}</span>`);
+                    }
+                    offset += mr.count;
+                    monthIdx++;
+                }
 
                 // Moyenne mobile (fenêtre de 7) + courbe lissée
                 const windowSize = 7;
@@ -1322,39 +1384,104 @@
                     </div>
                     <p class="timeline-description">Score d'humeur au fil du temps</p>
                     <div class="timeline-chart" id="timeline-chart" role="img" aria-label="Évolution des scores d'humeur sur ${entries.length} jours">
-                        <div class="timeline-chart-inner">
-                            <div class="timeline-gridline" style="bottom: 20%"></div>
-                            <div class="timeline-gridline" style="bottom: 40%"></div>
-                            <div class="timeline-midline"></div>
-                            <div class="timeline-gridline" style="bottom: 80%"></div>
-                            <div class="timeline-gridline" style="bottom: 100%"></div>
-                            <svg class="timeline-trendline" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    <clipPath id="clip-above">
-                                        <rect x="0" y="0" width="100" height="${midY}"/>
-                                    </clipPath>
-                                    <clipPath id="clip-below">
-                                        <rect x="0" y="${midY}" width="100" height="${100 - midY}"/>
-                                    </clipPath>
-                                </defs>
-                                <path class="area-fill" d="${areaPath}" fill="rgba(39,174,96,0.2)" clip-path="url(#clip-above)"/>
-                                <path class="area-fill" d="${areaPath}" fill="rgba(231,76,60,0.2)" clip-path="url(#clip-below)"/>
-                                <path d="${trendPath}" fill="none" stroke="#e67e22" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>
-                            </svg>
-                            <div class="timeline-bars">
-                                ${barsHTML.join('')}
+                        <div class="timeline-chart-inner" id="timeline-chart-inner">
+                            <div class="timeline-chart-scroll" id="timeline-chart-scroll">
+                                <div class="timeline-gridline" style="bottom: 20%"></div>
+                                <div class="timeline-gridline" style="bottom: 40%"></div>
+                                <div class="timeline-midline"></div>
+                                <div class="timeline-gridline" style="bottom: 80%"></div>
+                                <div class="timeline-gridline" style="bottom: 100%"></div>
+                                <svg class="timeline-trendline" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <clipPath id="clip-above">
+                                            <rect x="0" y="0" width="100" height="${midY}"/>
+                                        </clipPath>
+                                        <clipPath id="clip-below">
+                                            <rect x="0" y="${midY}" width="100" height="${100 - midY}"/>
+                                        </clipPath>
+                                    </defs>
+                                    <path class="area-fill" d="${areaPath}" fill="rgba(39,174,96,0.2)" clip-path="url(#clip-above)"/>
+                                    <path class="area-fill" d="${areaPath}" fill="rgba(231,76,60,0.2)" clip-path="url(#clip-below)"/>
+                                    <path d="${trendPath}" fill="none" stroke="#e67e22" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>
+                                </svg>
+                                <div class="timeline-bars">
+                                    ${barsHTML.join('')}
+                                </div>
                             </div>
                         </div>
-                        <div class="timeline-day-labels">
-                            ${labelsHTML.join('')}
-                        </div>
-                        <div class="timeline-day-labels timeline-month-labels">
-                            ${monthLabelsHTML}
+                        <div class="timeline-labels-scroll" id="timeline-labels-scroll">
+                            <div class="timeline-day-labels">
+                                ${labelsHTML.join('')}
+                            </div>
+                            <div class="timeline-day-labels timeline-month-labels">
+                                ${monthLabelsHTML.join('')}
+                            </div>
                         </div>
                     </div>
                 `;
 
                 card.style.display = '';
+
+                // Post-render: séparateurs de mois, scroll sync, auto-scroll
+                requestAnimationFrame(() => {
+                    const chartInner = document.getElementById('timeline-chart-inner');
+                    const chartScroll = document.getElementById('timeline-chart-scroll');
+                    const labelsScroll = document.getElementById('timeline-labels-scroll');
+                    const barGroups = chartScroll.querySelectorAll('.timeline-bar-group');
+
+                    // Ajuster la largeur du scroll wrapper à celle des barres
+                    const barsEl = chartScroll.querySelector('.timeline-bars');
+                    chartScroll.style.width = barsEl.scrollWidth + 'px';
+
+                    // Positionner les séparateurs de mois en absolu
+                    monthBoundaryIndices.forEach(idx => {
+                        if (barGroups[idx]) {
+                            const sep = document.createElement('div');
+                            sep.className = 'timeline-month-sep';
+                            sep.style.left = barGroups[idx].offsetLeft + 'px';
+                            chartScroll.appendChild(sep);
+                        }
+                    });
+
+                    // Synchroniser le scroll des labels
+                    chartInner.addEventListener('scroll', () => {
+                        labelsScroll.scrollLeft = chartInner.scrollLeft;
+                    });
+
+                    // Drag-to-scroll (grab & pan)
+                    if (chartInner.scrollWidth > chartInner.clientWidth) {
+                        chartInner.classList.add('grab');
+                        let isDragging = false;
+                        let startX, startScroll;
+
+                        const onPointerDown = (e) => {
+                            isDragging = true;
+                            startX = e.clientX;
+                            startScroll = chartInner.scrollLeft;
+                            chartInner.classList.add('grabbing');
+                            chartInner.setPointerCapture(e.pointerId);
+                        };
+                        const onPointerMove = (e) => {
+                            if (!isDragging) return;
+                            chartInner.scrollLeft = startScroll - (e.clientX - startX);
+                        };
+                        const onPointerUp = (e) => {
+                            if (!isDragging) return;
+                            isDragging = false;
+                            chartInner.classList.remove('grabbing');
+                            chartInner.releasePointerCapture(e.pointerId);
+                        };
+
+                        chartInner.addEventListener('pointerdown', onPointerDown);
+                        chartInner.addEventListener('pointermove', onPointerMove);
+                        chartInner.addEventListener('pointerup', onPointerUp);
+                        chartInner.addEventListener('pointercancel', onPointerUp);
+                    }
+
+                    // Auto-scroll vers la fin (données récentes)
+                    chartInner.scrollLeft = chartInner.scrollWidth;
+                    labelsScroll.scrollLeft = chartInner.scrollLeft;
+                });
 
                 document.getElementById('timeline-focus-btn').addEventListener('click', function() {
                     const chart = document.getElementById('timeline-chart');
@@ -1377,8 +1504,8 @@
                 const today = new Date();
                 const months = [];
 
-                // Générer les 3 derniers mois (du plus récent au plus ancien)
-                for (let i = 0; i <= 2; i++) {
+                // Générer les 2 derniers mois (du plus récent au plus ancien)
+                for (let i = 0; i < 2; i++) {
                     const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
                     months.push(date);
                 }
