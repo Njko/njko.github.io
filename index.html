@@ -10,12 +10,19 @@
   <main class="page">
     <h1>🎡 La roue des algos</h1>
 
-    <div id="wheel-wrap" class="wheel-wrap">
-      <canvas id="wheel-canvas"></canvas>
-      <div class="pointer" aria-hidden="true"></div>
+    <div id="wheel-view" class="wheel-view">
+      <div id="wheel-wrap" class="wheel-wrap">
+        <canvas id="wheel-canvas"></canvas>
+        <div class="pointer" aria-hidden="true"></div>
+      </div>
+      <button id="spin-btn" type="button">Lancer la roue</button>
     </div>
 
-    <button id="spin-btn" type="button">Lancer la roue</button>
+    <div id="list-view" class="list-view" hidden>
+      <ul id="algo-list" class="algo-list"></ul>
+    </div>
+
+    <button id="toggle-view-btn" type="button">📋 Voir la liste</button>
     <p id="load-error" class="load-error" hidden>Impossible de charger la liste des algorithmes. Réessayez plus tard.</p>
   </main>
 
