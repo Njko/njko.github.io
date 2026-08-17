@@ -25,7 +25,7 @@
       "name": "Ring / Circular Buffer",
       "category": "structure",
       "summary": "Buffer circulaire pour flux continu de données",
-      "fullDescription": "Tableau de taille fixe avec deux index (lecture/écriture) qui bouclent modulo la capacité, permettant d'écrire et lire en continu sans réallocation ni décalage d'éléments. Utilisé partout où des données arrivent en flux à débit régulier et où seules les N dernières valeurs comptent.",
+      "fullDescription": "Tableau de taille fixe avec deux index (lecture/écriture) qui bouclent modulo la capacité, permettant d'écrire et lire en continu sans réallocation ni décalage d'éléments : une fois la capacité atteinte, chaque nouvelle écriture écrase la donnée la plus ancienne. Utilisé partout où des données arrivent en flux à débit régulier et où seules les N dernières valeurs comptent.",
       "ios": "Buffers audio d'AVAudioEngine, ou agrégation d'échantillons de capteurs (CoreMotion) avant traitement par lot.",
       "android": "Buffers d'AudioTrack/AudioRecord pour le flux audio, ou batching d'échantillons de capteurs via SensorManager.",
       "keywords": ["ring buffer", "circular buffer", "audio buffer", "AVAudioEngine", "SensorManager"]
@@ -35,7 +35,7 @@
       "name": "Stack",
       "category": "structure",
       "summary": "Pile LIFO, souvent adossée à un tableau",
-      "fullDescription": "Structure LIFO (dernier entré, premier sorti) implémentée sur un tableau dynamique pour push/pop en O(1) amorti. La question piège classique porte sur le comportement mémoire : pourquoi un type valeur adossé à un tableau reste performant malgré des copies apparentes.",
+      "fullDescription": "Structure LIFO (dernier entré, premier sorti) implémentée sur un tableau dynamique pour push/pop en O(1) amorti. La question piège classique porte sur le mécanisme de Copy-on-Write (COW) : un type valeur adossé à un tableau semble copié à chaque affectation, mais le buffer mémoire n'est réellement dupliqué qu'au premier accès en écriture après le partage — d'où les bonnes performances malgré des copies en apparence coûteuses.",
       "ios": "En Swift, un Stack basé sur Array est un struct ; le compilateur applique le Copy-on-Write, donc une copie ne duplique le buffer que si l'un des deux exemplaires est mutable ensuite.",
       "android": "Kotlin n'a pas de COW natif sur ses collections mutables ; on discute plutôt de l'immutabilité par défaut des List/data class et des collections persistantes (kotlinx.collections.immutable) comme équivalent conceptuel.",
       "keywords": ["LIFO", "push/pop", "Copy-on-Write", "COW", "value type vs reference type"]
