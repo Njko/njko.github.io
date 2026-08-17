@@ -143,6 +143,7 @@ function handleSpinClick() {
   }
   isSpinning = true;
   spinButton.disabled = true;
+  hideResultPanel();
 
   const winningIndex = Math.floor(Math.random() * algorithms.length);
   const fromRotation = currentRotation;
@@ -152,8 +153,20 @@ function handleSpinClick() {
     isSpinning = false;
     spinButton.disabled = false;
     triggerPulse();
-    console.log('Winner:', algorithms[winningIndex].name);
+    showResult(algorithms[winningIndex]);
   });
+}
+
+function showResult(algorithm) {
+  resultName.textContent = algorithm.name;
+  resultDescription.textContent = algorithm.fullDescription;
+  resultIos.textContent = algorithm.ios;
+  resultAndroid.textContent = algorithm.android;
+  resultPanel.hidden = false;
+}
+
+function hideResultPanel() {
+  resultPanel.hidden = true;
 }
 
 function showLoadError() {
@@ -175,6 +188,7 @@ async function init() {
     drawWheel(currentRotation);
   });
   spinButton.addEventListener('click', handleSpinClick);
+  relaunchButton.addEventListener('click', hideResultPanel);
 }
 
 init();
