@@ -176,6 +176,7 @@ function showResult(algorithm) {
   );
   resultIos.textContent = algorithm.ios;
   resultAndroid.textContent = algorithm.android;
+  relaunchButton.textContent = currentView === 'list' ? 'Fermer' : 'Relancer';
   resultPanel.hidden = false;
 }
 
