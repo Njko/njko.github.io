@@ -1,0 +1,110 @@
+'use strict';
+
+const TWO_PI = Math.PI * 2;
+const PALETTE = [
+  '#e63946', '#f1a208', '#ffd60a', '#2a9d8f', '#457b9d',
+  '#8338ec', '#ff006e', '#06d6a0', '#fb5607'
+];
+
+const canvas = document.getElementById('wheel-canvas');
+const ctx = canvas.getContext('2d');
+const wheelWrap = document.getElementById('wheel-wrap');
+const spinButton = document.getElementById('spin-btn');
+const loadError = document.getElementById('load-error');
+const resultPanel = document.getElementById('result-panel');
+const resultName = document.getElementById('result-name');
+const resultDescription = document.getElementById('result-description');
+const resultIos = document.getElementById('result-ios');
+const resultAndroid = document.getElementById('result-android');
+const relaunchButton = document.getElementById('relaunch-btn');
+
+let algorithms = [];
+let currentRotation = 0;
+let isSpinning = false;
+
+async function loadAlgorithms() {
+  const response = await fetch('algorithms.json');
+  if (!response.ok) {
+    throw new Error(`Failed to load algorithms.json: ${response.status}`);
+  }
+  const data = await response.json();
+  return data.algorithms;
+}
+
+function resizeCanvas() {
+  const size = Math.max(260, Math.min(500, wheelWrap.clientWidth));
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = `${size}px`;
+  canvas.style.height = `${size}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function truncateLabel(context, text, maxWidth) {
+  if (context.measureText(text).width <= maxWidth) {
+    return text;
+  }
+  let truncated = text;
+  while (truncated.length > 1 && context.measureText(`${truncated}…`).width > maxWidth) {
+    truncated = truncated.slice(0, -1);
+  }
+  return `${truncated}…`;
+}
+
+function drawWheel(rotation) {
+  const size = canvas.clientWidth;
+  const radius = size / 2;
+  ctx.clearRect(0, 0, size, size);
+  if (!algorithms.length) {
+    return;
+  }
+  ctx.save();
+  ctx.translate(radius, radius);
+  ctx.rotate(rotation);
+  const sectorAngle = TWO_PI / algorithms.length;
+  algorithms.forEach((algo, i) => {
+    const startAngle = i * sectorAngle;
+    const endAngle = startAngle + sectorAngle;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius - 4, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = PALETTE[i % PALETTE.length];
+    ctx.fill();
+
+    ctx.save();
+    ctx.rotate(startAngle + sectorAngle / 2);
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '600 13px system-ui, sans-serif';
+    const label = truncateLabel(ctx, algo.name, radius - 24);
+    ctx.fillText(label, radius - 14, 0);
+    ctx.restore();
+  });
+  ctx.restore();
+}
+
+function showLoadError() {
+  loadError.hidden = false;
+  spinButton.disabled = true;
+}
+
+async function init() {
+  try {
+    algorithms = await loadAlgorithms();
+  } catch (err) {
+    showLoadError();
+    return;
+  }
+  resizeCanvas();
+  drawWheel(currentRotation);
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    drawWheel(currentRotation);
+  });
+}
+
+init();

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La roue des algos d'entretien</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <h1>🎡 La roue des algos d'entretien</h1>
+    <p class="subtitle">Structures de données et algorithmes classiques en entretien, avec l'angle iOS et Android.</p>
+
+    <div id="wheel-wrap" class="wheel-wrap">
+      <canvas id="wheel-canvas"></canvas>
+      <div class="pointer" aria-hidden="true"></div>
+    </div>
+
+    <button id="spin-btn" type="button">Lancer la roue</button>
+    <p id="load-error" class="load-error" hidden>Impossible de charger la liste des algorithmes. Réessayez plus tard.</p>
+  </main>
+
+  <div id="result-panel" class="result-panel" hidden>
+    <div class="result-card">
+      <h2 id="result-name"></h2>
+      <p id="result-description"></p>
+      <div class="result-platforms">
+        <div class="platform-card">
+          <h3>🍎 iOS</h3>
+          <p id="result-ios"></p>
+        </div>
+        <div class="platform-card">
+          <h3>🤖 Android</h3>
+          <p id="result-android"></p>
+        </div>
+      </div>
+      <button id="relaunch-btn" type="button">Relancer</button>
+    </div>
+  </div>
+
+  <script src="wheel.js"></script>
+</body>
+</html>
