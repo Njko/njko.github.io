@@ -1,110 +1,54 @@
-# Mon Niko Niko 📊
+# La roue des algos d'entretien 🎡
 
-Application web simple pour afficher votre humeur du jour, inspirée du calendrier Niko Niko utilisé dans les équipes agiles.
-
-## Qu'est-ce qu'un Niko Niko ?
-
-Le Niko Niko (ニコニコ signifiant "sourire" en japonais) est un outil de visualisation d'humeur permettant de suivre votre état émotionnel au fil du temps.
+Un mini-jeu web : une roue de la fortune listant les structures de données
+et algorithmes les plus souvent demandés en entretien technique, avec pour
+chacun l'angle iOS (Swift) et l'équivalent Android (Kotlin).
 
 ## Fonctionnement
 
-Cette application affiche votre humeur du jour en lisant le fichier `moods.json`.
+Cliquez sur « Lancer la roue ». Elle tourne pendant 3 secondes avec une
+décélération progressive puis s'arrête sur un algorithme tiré au hasard
+(le tirage se fait avec remise : un même algorithme peut ressortir
+plusieurs fois de suite). Un panneau affiche alors son nom, une
+description complète, et deux encarts détaillant l'implémentation
+attendue côté iOS et côté Android.
 
-### Affichage
+## Ajouter ou modifier un algorithme
 
-- 🎭 Grande visualisation de l'humeur du jour avec l'emoji d'humeur et de raison
-- 📊 Statistiques simples (nombre de jours, moyenne)
-- 📅 Calendrier des 3 derniers mois pour voir les tendances en un coup d'œil
-- 🎨 Design épuré et animé
-
-### Mise à jour des humeurs
-
-Les humeurs sont enregistrées dans le fichier `moods.json` à la racine du repository. Pour ajouter ou modifier une humeur, éditez simplement ce fichier et commitez les changements via Git.
-
-## Format du fichier moods.json
+La liste des 17 algorithmes vit dans `algorithms.json`, à la racine du
+repository. Chaque entrée suit ce schéma :
 
 ```json
 {
-  "moods": {
-    "2026-01-17": {
-      "value": "1",
-      "reason": "💻"
-    },
-    "2026-01-18": {
-      "value": "2",
-      "reason": "🏠"
-    }
-  }
+  "id": "lru-cache",
+  "name": "LRU Cache",
+  "category": "structure",
+  "summary": "Dictionnaire + liste doublement chaînée",
+  "fullDescription": "Description complète affichée dans le panneau résultat.",
+  "ios": "Détail spécifique à l'implémentation iOS/Swift.",
+  "android": "Détail spécifique à l'implémentation Android/Kotlin."
 }
 ```
 
-### Structure des entrées
+- `category` est `"structure"`, `"algorithme"` ou `"ios-specifique"` — informatif uniquement, n'affecte ni la couleur ni le tirage.
+- Pour ajouter un algorithme, ajoutez une entrée à la liste `algorithms` du fichier et rechargez la page : la roue s'adapte automatiquement au nombre d'entrées.
+- Pour modifier un algorithme existant, éditez ses champs directement.
 
-Chaque entrée contient :
-- **`value`** (1-5) : Le niveau d'humeur (l'emoji d'humeur est automatiquement mappé depuis cette valeur)
-- **`reason`** (optionnel) : Un emoji représentant la raison/contexte de cette humeur (ex: 💻 travail, 🏠 maison, 👨‍👩‍👧‍👦 famille, etc.)
+## Développement local
 
-### Les 5 niveaux d'humeur
-
-- **5** : 😄 Excellent - Une excellente journée !
-- **4** : 🙂 Bien - Bonne humeur générale
-- **3** : 😐 Neutre - Journée normale
-- **2** : 😕 Moyen - Quelques difficultés
-- **1** : 😢 Difficile - Journée difficile
-
-### Exemples d'emojis de raison
-
-- 💻 Travail
-- 🏠 Maison
-- 👨‍👩‍👧‍👦 Famille
-- 🏃 Sport/Santé
-- 💰 Finances
-- ✈️ Voyage
-- 🎉 Événement spécial
-- 😴 Fatigue
-- etc.
-
-## Visualisation du calendrier
-
-Le calendrier affiche les 3 derniers mois avec :
-- Les jours du mois dans une grille (format semaine : Lun-Dim)
-- L'emoji d'humeur pour chaque jour enregistré
-- L'emoji de raison en dessous (si renseigné)
-- Le jour actuel mis en évidence avec une bordure bleue
-- Les jours avec humeur ont un fond coloré et s'agrandissent au survol
-
-Cette vue permet de visualiser rapidement vos tendances d'humeur et d'identifier les patterns sur les dernières semaines.
-
-## Workflow Git
-
-Pour mettre à jour votre humeur du jour :
-
-1. Éditez le fichier `moods.json`
-2. Ajoutez ou modifiez l'entrée pour la date du jour (format: `AAAA-MM-JJ`)
-3. Commitez le changement : `git commit -m "🎭 Humeur du JJ/MM : [emoji]"`
-4. Pushez vers GitHub : `git push`
-5. Rafraîchissez la page web pour voir la mise à jour
-
-## Exemple de commit
+Aucune dépendance, aucune étape de build :
 
 ```bash
-# Éditer moods.json pour ajouter l'humeur du jour
-# Exemple : value: 2 (Moyen 😕), reason: 🏠 (maison)
-git add moods.json
-git commit -m "🎭 Humeur du 18/01 : 😕 (🏠)"
-git push
+python -m http.server 8000
 ```
+
+Puis ouvrez `http://localhost:8000/`.
 
 ## Technologie
 
-Application web simple utilisant :
-- **HTML5** : Structure de la page
-- **CSS3** : Design moderne avec animations
-- **JavaScript vanilla** : Chargement et affichage du JSON
-- **Fetch API** : Lecture du fichier moods.json
+- **HTML5 / CSS3** : structure et style de la page.
+- **JavaScript vanilla** : chargement de `algorithms.json`, rendu de la roue en Canvas 2D, animation de rotation.
+- **Canvas 2D API** : dessin des secteurs colorés et de leurs libellés.
+- **Fetch API** : lecture de `algorithms.json`.
 
-Pas de backend, pas de configuration compliquée - juste un fichier JSON et du HTML/CSS/JS pur !
-
----
-
-Prenez soin de vous et suivez votre bien-être au quotidien ! 🌟
+Pas de backend, pas de framework, pas de build — juste du HTML/CSS/JS pur, déployé automatiquement via GitHub Pages.

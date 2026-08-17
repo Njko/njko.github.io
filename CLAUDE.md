@@ -4,34 +4,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-"Mon Niko Niko" — a personal mood tracking dashboard hosted on GitHub Pages. It's a zero-dependency, single-file static app (HTML + CSS + vanilla JS) inspired by the Niko Niko calendar from agile practices.
+"La roue des algos d'entretien" — a spinning-wheel web game listing interview data structures and algorithms (originally scoped for iOS interviews), each paired with an iOS (Swift) and Android (Kotlin) implementation angle. Zero-dependency, static, hosted on GitHub Pages.
 
 ## Development
 
-No build step, no package manager, no dependencies. The entire app lives in `index.html`.
+No build step, no package manager, no dependencies.
 
-**Local development:** Open `index.html` in a browser, or serve via any HTTP server:
+**Local development:**
 ```bash
 python -m http.server 8000
 ```
 
 **Deployment:** Automatic via GitHub Pages on push to main. No CI/CD pipeline.
 
-**No tests or linting configured.**
+**No tests or linting configured.** Verification is manual: `node --check wheel.js` for syntax, `node -e` scripts for validating `algorithms.json`, and browser checks against a local server.
 
 ## Architecture
 
-- **`index.html`** — Single-file app (~27KB) containing all HTML, CSS, and JavaScript. The JS defines a `NikoNiko` class that loads mood data, computes stats, and renders a 3-month calendar grid.
-- **`moods.json`** — Data store for mood entries. Keyed by `YYYY-MM-DD` with `value` (1-5), optional `reason` (emoji), and optional `vacation` (boolean).
+- **`index.html`** — Page structure: the wheel canvas, spin button, and the result panel markup.
+- **`style.css`** — Casino-style visual design, layout, and responsive rules (the iOS/Android result cards stack vertically below 600px).
+- **`wheel.js`** — All game logic: fetches `algorithms.json`, draws the wheel on a `<canvas>` (Canvas 2D API), computes the winning rotation, animates the 3-second decelerating spin (`requestAnimationFrame` + `easeOutCubic`), and renders the result panel.
+- **`algorithms.json`** — Data store for the 17 algorithms. Each entry: `id`, `name`, `category` (`structure` | `algorithme` | `ios-specifique`, informative only), `summary`, `fullDescription`, `ios`, `android`.
 
-**Data flow:** Page load → fetch `moods.json` → display today's mood + stats → render 3-month calendar with color-coded days.
+**Data flow:** Page load → fetch `algorithms.json` → draw the static wheel → user clicks "Lancer la roue" → uniform random pick (with replacement) → 3s decelerating rotation animation → result panel shows the winning algorithm's description and iOS/Android detail.
 
-**Mood scale:** 1 (😢 Difficile) → 5 (😄 Excellent).
+**Spin duration:** fixed at 3000ms, `easeOutCubic` easing for the deceleration effect.
 
 ## Content Language
 
-The app UI and README are written in **French**.
-
-## Git Commit Convention
-
-Mood entry commits follow the pattern: `🎭 Humeur du JJ/MM : [emoji]`
+The app UI, README, and algorithm descriptions are written in **French**. Technical API/framework names stay in their native English form (e.g. `DispatchWorkItem`, `LruCache`, `DiffUtil`).
