@@ -15,7 +15,7 @@
       "name": "LRU Cache",
       "category": "structure",
       "summary": "Dictionnaire + liste doublement chaînée",
-      "fullDescription": "Cache à éviction LRU (Least Recently Used) : une hash map donne l'accès O(1) à chaque nœud, une liste doublement chaînée maintient l'ordre d'utilisation pour déplacer un élément accédé en tête et évincer la queue en O(1) quand la capacité est dépassée. C'est la structure la plus demandée en entretien car elle correspond directement à un cache d'images.",
+      "fullDescription": "Cache à éviction LRU (Least Recently Used) : une hash map donne l'accès O(1) à chaque nœud, une liste doublement chaînée maintient l'ordre d'utilisation pour déplacer un élément accédé en tête et évincer la queue en O(1) quand la capacité est dépassée. C'est une structure incontournable car elle correspond directement à un cache d'images.",
       "ios": "NSCache applique une éviction automatique sous pression mémoire, mais Apple ne documente pas d'ordre LRU strict garanti ; on la réimplémente à la main quand un ordre LRU précis est requis, par exemple un cache d'images à capacité fixe.",
       "android": "LruCache<K, V> de androidx.collection l'implémente nativement ; Coil s'appuie dessus pour son cache mémoire d'images, exposé côté Compose via AsyncImage.",
       "keywords": ["LRU", "hash map + linked list", "NSCache", "LruCache", "eviction policy"]
@@ -85,7 +85,7 @@
       "name": "Binary Search",
       "category": "algorithme",
       "summary": "Recherche dichotomique, souvent pour une liste paginée triée",
-      "fullDescription": "Recherche en O(log n) dans une collection triée en comparant systématiquement l'élément du milieu et en réduisant l'intervalle de moitié. En entretien, souvent posée comme : trouver l'index d'insertion d'un nouvel élément dans une liste déjà triée et déjà partiellement chargée par pagination.",
+      "fullDescription": "Recherche en O(log n) dans une collection triée en comparant systématiquement l'élément du milieu et en réduisant l'intervalle de moitié. Se présente souvent comme : trouver l'index d'insertion d'un nouvel élément dans une liste déjà triée et déjà partiellement chargée par pagination.",
       "ios": "Recherche de la position d'insertion dans les données déjà chargées d'une List SwiftUI paginée, avant de fusionner une nouvelle page de résultats triés.",
       "android": "Même problème côté LazyColumn avec les données de la bibliothèque Paging3 (androidx.paging.compose), où il faut positionner de nouveaux éléments triés dans une liste déjà partiellement chargée.",
       "keywords": ["binary search", "dichotomie", "O(log n)", "insertion index", "sorted array"]
@@ -115,7 +115,7 @@
       "name": "Merge Intervals",
       "category": "algorithme",
       "summary": "Fusionner des intervalles qui se chevauchent",
-      "fullDescription": "Trier une liste d'intervalles par borne de début, puis les parcourir en fusionnant chaque intervalle avec le précédent dès que leurs bornes se chevauchent, en O(n log n) dominé par le tri. Le cas d'usage le plus fréquent en entretien : fusionner des événements de calendrier qui se recouvrent dans le temps.",
+      "fullDescription": "Trier une liste d'intervalles par borne de début, puis les parcourir en fusionnant chaque intervalle avec le précédent dès que leurs bornes se chevauchent, en O(n log n) dominé par le tri. Le cas d'usage le plus fréquent : fusionner des événements de calendrier qui se recouvrent dans le temps.",
       "ios": "Fusionner des événements récupérés via EventKit (EKEvent) qui se chevauchent avant de les afficher dans une vue calendrier condensée.",
       "android": "Même logique sur des événements lus depuis le CalendarContract du SDK Android.",
       "keywords": ["merge intervals", "overlapping intervals", "sort by start", "EventKit", "calendar events"]
