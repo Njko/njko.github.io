@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-"La roue des algos d'entretien" — a spinning-wheel web game listing interview data structures and algorithms (originally scoped for iOS interviews), each paired with an iOS (Swift) and Android (Kotlin) implementation angle. Zero-dependency, static, hosted on GitHub Pages.
+"La roue des algos" — a spinning-wheel web game listing common data structures and algorithms (originally scoped for iOS), each paired with an iOS (Swift) and Android (Kotlin) implementation angle. Zero-dependency, static, hosted on GitHub Pages.
 
 ## Development
 

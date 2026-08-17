@@ -1,8 +1,8 @@
-# La roue des algos d'entretien 🎡
+# La roue des algos 🎡
 
-Un mini-jeu web : une roue de la fortune listant les structures de données
-et algorithmes les plus souvent demandés en entretien technique, avec pour
-chacun l'angle iOS (Swift) et l'équivalent Android (Kotlin).
+Un mini-jeu web : une roue de la fortune listant des structures de données
+et algorithmes classiques, avec pour chacun l'angle iOS (Swift) et
+l'équivalent Android (Kotlin).
 
 ## Fonctionnement
 
