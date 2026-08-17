@@ -118,6 +118,10 @@ h1 {
   z-index: 10;
 }
 
+.result-panel[hidden] {
+  display: none;
+}
+
 .result-card {
   background: var(--card-bg);
   border-radius: 16px;
