@@ -87,6 +87,75 @@ function drawWheel(rotation) {
   ctx.restore();
 }
 
+const EXTRA_SPINS = 6;
+const SPIN_DURATION_MS = 3000;
+
+function normalizeAngle(angle) {
+  return ((angle % TWO_PI) + TWO_PI) % TWO_PI;
+}
+
+function computeFinalRotation(fromRotation, winningIndex, sectorCount) {
+  const sectorAngle = TWO_PI / sectorCount;
+  const pointerAngle = -Math.PI / 2;
+  const targetSectorCenter = (winningIndex + 0.5) * sectorAngle;
+  const jitter = (Math.random() - 0.5) * sectorAngle * 0.6;
+  const targetMod = normalizeAngle(pointerAngle - targetSectorCenter - jitter);
+  const currentMod = normalizeAngle(fromRotation);
+  let delta = targetMod - currentMod;
+  if (delta < 0) {
+    delta += TWO_PI;
+  }
+  return fromRotation + EXTRA_SPINS * TWO_PI + delta;
+}
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function animateSpin(fromRotation, toRotation, duration, onComplete) {
+  const startTime = performance.now();
+  function frame(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const eased = easeOutCubic(t);
+    currentRotation = fromRotation + (toRotation - fromRotation) * eased;
+    drawWheel(currentRotation);
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      currentRotation = toRotation;
+      onComplete();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function triggerPulse() {
+  wheelWrap.classList.add('pulse');
+  wheelWrap.addEventListener('animationend', () => {
+    wheelWrap.classList.remove('pulse');
+  }, { once: true });
+}
+
+function handleSpinClick() {
+  if (isSpinning || !algorithms.length) {
+    return;
+  }
+  isSpinning = true;
+  spinButton.disabled = true;
+
+  const winningIndex = Math.floor(Math.random() * algorithms.length);
+  const fromRotation = currentRotation;
+  const toRotation = computeFinalRotation(fromRotation, winningIndex, algorithms.length);
+
+  animateSpin(fromRotation, toRotation, SPIN_DURATION_MS, () => {
+    isSpinning = false;
+    spinButton.disabled = false;
+    triggerPulse();
+    console.log('Winner:', algorithms[winningIndex].name);
+  });
+}
+
 function showLoadError() {
   loadError.hidden = false;
   spinButton.disabled = true;
@@ -105,6 +174,7 @@ async function init() {
     resizeCanvas();
     drawWheel(currentRotation);
   });
+  spinButton.addEventListener('click', handleSpinClick);
 }
 
 init();
