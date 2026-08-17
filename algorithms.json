@@ -6,9 +6,9 @@
       "category": "structure",
       "summary": "File d'attente premier entré, premier sorti",
       "fullDescription": "Structure FIFO où l'élément inséré en premier est celui qui sort en premier. S'implémente efficacement avec un buffer circulaire (deux index tête/queue sur un tableau) ou une liste chaînée à deux extrémités, pour garder l'ajout et le retrait en O(1).",
-      "ios": "Un tableau utilisé comme buffer circulaire, ou NSOperationQueue pour une file de tâches à exécution séquentielle.",
+      "ios": "Un tableau utilisé comme buffer circulaire, ou une DispatchQueue série (FIFO par construction) pour une file de tâches ; NSOperationQueue s'en rapproche mais exécute plusieurs opérations en concurrence par défaut — il faut maxConcurrentOperationCount = 1 pour garantir un traitement strictement séquentiel.",
       "android": "ArrayDeque en Kotlin pour une implémentation en mémoire, ou la file de tâches de WorkManager pour des files persistantes.",
-      "keywords": ["FIFO", "buffer circulaire", "ArrayDeque", "NSOperationQueue", "head/tail pointer"]
+      "keywords": ["FIFO", "buffer circulaire", "ArrayDeque", "DispatchQueue série", "head/tail pointer"]
     },
     {
       "id": "lru-cache",
@@ -16,7 +16,7 @@
       "category": "structure",
       "summary": "Dictionnaire + liste doublement chaînée",
       "fullDescription": "Cache à éviction LRU (Least Recently Used) : une hash map donne l'accès O(1) à chaque nœud, une liste doublement chaînée maintient l'ordre d'utilisation pour déplacer un élément accédé en tête et évincer la queue en O(1) quand la capacité est dépassée. C'est la structure la plus demandée en entretien car elle correspond directement à un cache d'images.",
-      "ios": "NSCache s'inspire de ce principe ; on la réimplémente à la main pour contrôler précisément la politique d'éviction, par exemple un cache d'images limité en mémoire.",
+      "ios": "NSCache applique une éviction automatique sous pression mémoire, mais Apple ne documente pas d'ordre LRU strict garanti ; on la réimplémente à la main quand un ordre LRU précis est requis, par exemple un cache d'images à capacité fixe.",
       "android": "LruCache<K,V> du SDK Android l'implémente nativement ; Glide et Coil s'appuient dessus pour leur cache mémoire d'images.",
       "keywords": ["LRU", "hash map + linked list", "NSCache", "LruCache", "eviction policy"]
     },
@@ -36,7 +36,7 @@
       "category": "structure",
       "summary": "Pile LIFO, souvent adossée à un tableau",
       "fullDescription": "Structure LIFO (dernier entré, premier sorti) implémentée sur un tableau dynamique pour push/pop en O(1) amorti. La question piège classique porte sur le mécanisme de Copy-on-Write (COW) : un type valeur adossé à un tableau semble copié à chaque affectation, mais le buffer mémoire n'est réellement dupliqué qu'au premier accès en écriture après le partage — d'où les bonnes performances malgré des copies en apparence coûteuses.",
-      "ios": "En Swift, un Stack basé sur Array est un struct ; le compilateur applique le Copy-on-Write, donc une copie ne duplique le buffer que si l'un des deux exemplaires est mutable ensuite.",
+      "ios": "En Swift, Array est un struct dont la bibliothèque standard implémente le Copy-on-Write (via isKnownUniquelyReferenced), donc une copie ne duplique le buffer que si l'un des deux exemplaires est mutable ensuite ; ce COW n'est pas automatique pour un type maison enveloppant une classe, il faut l'implémenter soi-même de la même façon.",
       "android": "Kotlin n'a pas de COW natif sur ses collections mutables ; on discute plutôt de l'immutabilité par défaut des List/data class et des collections persistantes (kotlinx.collections.immutable) comme équivalent conceptuel.",
       "keywords": ["LIFO", "push/pop", "Copy-on-Write", "COW", "value type vs reference type"]
     },
@@ -136,7 +136,7 @@
       "category": "ios-specifique",
       "summary": "Calculer les changements entre deux versions d'une liste",
       "fullDescription": "Comparer une ancienne et une nouvelle liste de données pour produire un ensemble minimal d'insertions/suppressions/déplacements à animer, via un algorithme de diff façon Myers ou un diff simplifié basé sur des hash d'identité et d'égalité de contenu.",
-      "ios": "UITableView/UICollectionView DiffableDataSource calcule ce diff automatiquement à partir d'un snapshot, à condition que les éléments soient Hashable (et idéalement Identifiable) pour distinguer identité et changement de contenu.",
+      "ios": "UITableView/UICollectionView DiffableDataSource calcule ce diff automatiquement à partir d'un snapshot : les identifiants d'éléments doivent être Hashable et rester stables pour que le diff distingue correctement identité et changement de contenu — Identifiable est le concept équivalent côté SwiftUI (ForEach), pas une exigence de cette API UIKit.",
       "android": "ListAdapter combiné à DiffUtil.ItemCallback côté RecyclerView fait le même calcul, en distinguant areItemsTheSame (identité) et areContentsTheSame (égalité de contenu).",
       "keywords": ["list diffing", "Myers diff", "DiffableDataSource", "DiffUtil", "Hashable / Identifiable"]
     },
