@@ -14,6 +14,7 @@ const loadError = document.getElementById('load-error');
 const resultPanel = document.getElementById('result-panel');
 const resultName = document.getElementById('result-name');
 const resultDescription = document.getElementById('result-description');
+const resultKeywords = document.getElementById('result-keywords');
 const resultIos = document.getElementById('result-ios');
 const resultAndroid = document.getElementById('result-android');
 const relaunchButton = document.getElementById('relaunch-btn');
@@ -160,6 +161,14 @@ function handleSpinClick() {
 function showResult(algorithm) {
   resultName.textContent = algorithm.name;
   resultDescription.textContent = algorithm.fullDescription;
+  resultKeywords.replaceChildren(
+    ...algorithm.keywords.map((keyword) => {
+      const pill = document.createElement('span');
+      pill.className = 'keyword-pill';
+      pill.textContent = keyword;
+      return pill;
+    })
+  );
   resultIos.textContent = algorithm.ios;
   resultAndroid.textContent = algorithm.android;
   resultPanel.hidden = false;

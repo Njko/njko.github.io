@@ -10,8 +10,9 @@ Cliquez sur « Lancer la roue ». Elle tourne pendant 3 secondes avec une
 décélération progressive puis s'arrête sur un algorithme tiré au hasard
 (le tirage se fait avec remise : un même algorithme peut ressortir
 plusieurs fois de suite). Un panneau affiche alors son nom, une
-description complète, et deux encarts détaillant l'implémentation
-attendue côté iOS et côté Android.
+description complète, un nuage de mots-clés (pour cerner l'objectif de
+l'algo et amorcer une recherche), et deux encarts détaillant
+l'implémentation attendue côté iOS et côté Android.
 
 ## Ajouter ou modifier un algorithme
 
@@ -26,11 +27,13 @@ repository. Chaque entrée suit ce schéma :
   "summary": "Dictionnaire + liste doublement chaînée",
   "fullDescription": "Description complète affichée dans le panneau résultat.",
   "ios": "Détail spécifique à l'implémentation iOS/Swift.",
-  "android": "Détail spécifique à l'implémentation Android/Kotlin."
+  "android": "Détail spécifique à l'implémentation Android/Kotlin.",
+  "keywords": ["LRU", "hash map + linked list", "NSCache", "LruCache", "eviction policy"]
 }
 ```
 
 - `category` est `"structure"`, `"algorithme"` ou `"ios-specifique"` — informatif uniquement, n'affecte ni la couleur ni le tirage.
+- `keywords` est une liste de quelques mots-clés (3-5) affichés en badges dans le panneau résultat, pour aider à cerner l'objectif de l'algo et donner des pistes de recherche.
 - Pour ajouter un algorithme, ajoutez une entrée à la liste `algorithms` du fichier et rechargez la page : la roue s'adapte automatiquement au nombre d'entrées.
 - Pour modifier un algorithme existant, éditez ses champs directement.
 

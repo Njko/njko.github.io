@@ -7,7 +7,8 @@
       "summary": "File d'attente premier entré, premier sorti",
       "fullDescription": "Structure FIFO où l'élément inséré en premier est celui qui sort en premier. S'implémente efficacement avec un buffer circulaire (deux index tête/queue sur un tableau) ou une liste chaînée à deux extrémités, pour garder l'ajout et le retrait en O(1).",
       "ios": "Un tableau utilisé comme buffer circulaire, ou NSOperationQueue pour une file de tâches à exécution séquentielle.",
-      "android": "ArrayDeque en Kotlin pour une implémentation en mémoire, ou la file de tâches de WorkManager pour des files persistantes."
+      "android": "ArrayDeque en Kotlin pour une implémentation en mémoire, ou la file de tâches de WorkManager pour des files persistantes.",
+      "keywords": ["FIFO", "buffer circulaire", "ArrayDeque", "NSOperationQueue", "head/tail pointer"]
     },
     {
       "id": "lru-cache",
@@ -16,7 +17,8 @@
       "summary": "Dictionnaire + liste doublement chaînée",
       "fullDescription": "Cache à éviction LRU (Least Recently Used) : une hash map donne l'accès O(1) à chaque nœud, une liste doublement chaînée maintient l'ordre d'utilisation pour déplacer un élément accédé en tête et évincer la queue en O(1) quand la capacité est dépassée. C'est la structure la plus demandée en entretien car elle correspond directement à un cache d'images.",
       "ios": "NSCache s'inspire de ce principe ; on la réimplémente à la main pour contrôler précisément la politique d'éviction, par exemple un cache d'images limité en mémoire.",
-      "android": "LruCache<K,V> du SDK Android l'implémente nativement ; Glide et Coil s'appuient dessus pour leur cache mémoire d'images."
+      "android": "LruCache<K,V> du SDK Android l'implémente nativement ; Glide et Coil s'appuient dessus pour leur cache mémoire d'images.",
+      "keywords": ["LRU", "hash map + linked list", "NSCache", "LruCache", "eviction policy"]
     },
     {
       "id": "ring-buffer",
@@ -25,7 +27,8 @@
       "summary": "Buffer circulaire pour flux continu de données",
       "fullDescription": "Tableau de taille fixe avec deux index (lecture/écriture) qui bouclent modulo la capacité, permettant d'écrire et lire en continu sans réallocation ni décalage d'éléments. Utilisé partout où des données arrivent en flux à débit régulier et où seules les N dernières valeurs comptent.",
       "ios": "Buffers audio d'AVAudioEngine, ou agrégation d'échantillons de capteurs (CoreMotion) avant traitement par lot.",
-      "android": "Buffers d'AudioTrack/AudioRecord pour le flux audio, ou batching d'échantillons de capteurs via SensorManager."
+      "android": "Buffers d'AudioTrack/AudioRecord pour le flux audio, ou batching d'échantillons de capteurs via SensorManager.",
+      "keywords": ["ring buffer", "circular buffer", "audio buffer", "AVAudioEngine", "SensorManager"]
     },
     {
       "id": "stack",
@@ -34,7 +37,8 @@
       "summary": "Pile LIFO, souvent adossée à un tableau",
       "fullDescription": "Structure LIFO (dernier entré, premier sorti) implémentée sur un tableau dynamique pour push/pop en O(1) amorti. La question piège classique porte sur le comportement mémoire : pourquoi un type valeur adossé à un tableau reste performant malgré des copies apparentes.",
       "ios": "En Swift, un Stack basé sur Array est un struct ; le compilateur applique le Copy-on-Write, donc une copie ne duplique le buffer que si l'un des deux exemplaires est mutable ensuite.",
-      "android": "Kotlin n'a pas de COW natif sur ses collections mutables ; on discute plutôt de l'immutabilité par défaut des List/data class et des collections persistantes (kotlinx.collections.immutable) comme équivalent conceptuel."
+      "android": "Kotlin n'a pas de COW natif sur ses collections mutables ; on discute plutôt de l'immutabilité par défaut des List/data class et des collections persistantes (kotlinx.collections.immutable) comme équivalent conceptuel.",
+      "keywords": ["LIFO", "push/pop", "Copy-on-Write", "COW", "value type vs reference type"]
     },
     {
       "id": "linked-list",
@@ -43,7 +47,8 @@
       "summary": "Liste chaînée générique, souvent pour sonder la gestion mémoire",
       "fullDescription": "Implémentation d'une liste chaînée simple ou double, générique sur le type stocké. Rarement demandée pour elle-même : sert de prétexte pour vérifier la compréhension du cycle de vie mémoire quand chaque nœud référence le suivant (et parfois le précédent).",
       "ios": "Avec ARC, un pointeur arrière (précédent) fort créerait un cycle de rétention ; il doit être déclaré weak pour que la liste puisse être désallouée correctement.",
-      "android": "Le garbage collector de la JVM/ART gère les cycles de références automatiquement, donc pas de fuite par cycle ; la discussion porte plutôt sur les fuites via des références statiques ou des listeners non désenregistrés."
+      "android": "Le garbage collector de la JVM/ART gère les cycles de références automatiquement, donc pas de fuite par cycle ; la discussion porte plutôt sur les fuites via des références statiques ou des listeners non désenregistrés.",
+      "keywords": ["linked list", "ARC", "retain cycle", "weak reference", "garbage collector"]
     },
     {
       "id": "debounce-throttle",
@@ -52,7 +57,8 @@
       "summary": "Limiter la fréquence d'appel d'une fonction, implémenté à la main",
       "fullDescription": "Le debounce retarde l'exécution d'une fonction jusqu'à ce qu'aucun nouvel appel n'ait eu lieu pendant un délai donné (annule et reprogramme à chaque appel) ; le throttle garantit au plus un appel par intervalle fixe. Les deux se codent à la main en gérant l'annulation du travail précédemment planifié.",
       "ios": "DispatchWorkItem stocké dans une propriété, annulé (cancel()) puis reprogrammé via DispatchQueue.main.asyncAfter à chaque nouvel appel.",
-      "android": "Un Job de coroutine stocké dans une propriété, annulé (job.cancel()) puis relancé avec delay(...) dans un nouveau launch, ou Handler.postDelayed avec removeCallbacks pour une approche sans coroutines."
+      "android": "Un Job de coroutine stocké dans une propriété, annulé (job.cancel()) puis relancé avec delay(...) dans un nouveau launch, ou Handler.postDelayed avec removeCallbacks pour une approche sans coroutines.",
+      "keywords": ["debounce", "throttle", "DispatchWorkItem", "coroutine Job", "rate limiting"]
     },
     {
       "id": "thread-safe-counter",
@@ -61,7 +67,8 @@
       "summary": "Accès concurrent sûr à un état partagé mutable",
       "fullDescription": "Protéger un dictionnaire ou un compteur accédé depuis plusieurs threads simultanément, en comparant les approches : verrou exclusif simple, verrou lecteur/écrivain qui autorise les lectures concurrentes, ou modèle d'isolation par acteur qui sérialise les accès sans verrou explicite.",
       "ios": "OSAllocatedUnfairLock ou NSLock pour un verrou bas niveau performant, versus un actor Swift qui isole l'état et sérialise automatiquement les accès via des points de suspension async.",
-      "android": "synchronized ou un Mutex de coroutine pour l'exclusion mutuelle, ConcurrentHashMap pour un dictionnaire thread-safe prêt à l'emploi, ou un StateFlow avec update{} atomique pour un compteur observable."
+      "android": "synchronized ou un Mutex de coroutine pour l'exclusion mutuelle, ConcurrentHashMap pour un dictionnaire thread-safe prêt à l'emploi, ou un StateFlow avec update{} atomique pour un compteur observable.",
+      "keywords": ["thread safety", "mutex", "actor", "race condition", "OSAllocatedUnfairLock"]
     },
     {
       "id": "two-pointers",
@@ -70,7 +77,8 @@
       "summary": "Plus longue sous-chaîne sans répétition, fenêtre glissante",
       "fullDescription": "Deux index parcourent une séquence en maintenant une fenêtre valide : l'un avance pour étendre la fenêtre, l'autre pour la réduire quand une contrainte est violée (ex: caractère dupliqué), le tout en O(n) au lieu d'une recherche par force brute en O(n²).",
       "ios": "Un exercice de manipulation de String en Swift, où il faut composer avec les index non entiers du type String (String.Index) plutôt qu'un simple compteur.",
-      "android": "Le même algorithme sur une String Kotlin, dont les index sont de simples Int, ce qui rend l'implémentation légèrement plus directe qu'en Swift."
+      "android": "Le même algorithme sur une String Kotlin, dont les index sont de simples Int, ce qui rend l'implémentation légèrement plus directe qu'en Swift.",
+      "keywords": ["two pointers", "sliding window", "longest substring", "O(n)", "String.Index"]
     },
     {
       "id": "binary-search",
@@ -79,7 +87,8 @@
       "summary": "Recherche dichotomique, souvent pour une liste paginée triée",
       "fullDescription": "Recherche en O(log n) dans une collection triée en comparant systématiquement l'élément du milieu et en réduisant l'intervalle de moitié. En entretien, souvent posée comme : trouver l'index d'insertion d'un nouvel élément dans une liste déjà triée et déjà partiellement chargée par pagination.",
       "ios": "Recherche de la position d'insertion dans les données déjà chargées d'une UITableView paginée, avant de fusionner une nouvelle page de résultats triés.",
-      "android": "Même problème côté RecyclerView avec les données de la bibliothèque Paging3, où il faut positionner de nouveaux éléments triés dans une liste déjà partiellement chargée."
+      "android": "Même problème côté RecyclerView avec les données de la bibliothèque Paging3, où il faut positionner de nouveaux éléments triés dans une liste déjà partiellement chargée.",
+      "keywords": ["binary search", "dichotomie", "O(log n)", "insertion index", "sorted array"]
     },
     {
       "id": "bfs-dfs-tree",
@@ -88,7 +97,8 @@
       "summary": "Parcours en largeur ou en profondeur d'une structure arborescente",
       "fullDescription": "Le parcours en largeur (BFS, via une file) traite les nœuds niveau par niveau ; le parcours en profondeur (DFS, via récursion ou une pile) descend une branche jusqu'au bout avant de revenir en arrière. Souvent posé sur un arbre concret plutôt qu'abstrait pour vérifier la traduction en code.",
       "ios": "Parcourir la hiérarchie de vues (UIView.subviews) pour trouver une vue par critère, ou parcourir un arbre JSON décodé en structures imbriquées.",
-      "android": "Parcourir l'arbre de vues (ViewGroup.getChildAt) pour une recherche similaire, ou parcourir la même structure JSON imbriquée côté Kotlin."
+      "android": "Parcourir l'arbre de vues (ViewGroup.getChildAt) pour une recherche similaire, ou parcourir la même structure JSON imbriquée côté Kotlin.",
+      "keywords": ["BFS", "DFS", "tree traversal", "recursion", "queue vs stack"]
     },
     {
       "id": "topological-sort",
@@ -97,7 +107,8 @@
       "summary": "Ordonner des tâches selon leurs dépendances",
       "fullDescription": "Tri qui ordonne les nœuds d'un graphe orienté acyclique de sorte que chaque nœud apparaisse après toutes ses dépendances, typiquement via un parcours DFS avec pile de sortie ou un algorithme de Kahn basé sur les degrés entrants. Sert à valider qu'un candidat sait détecter les dépendances cycliques.",
       "ios": "Ordonnancer des Operation dans une OperationQueue via des dépendances explicites (addDependency), où un cycle de dépendances bloquerait la queue indéfiniment.",
-      "android": "Chaîner des WorkRequest dans WorkManager (via then()/chain de travaux), l'équivalent conceptuel d'un graphe de tâches à exécuter dans le bon ordre."
+      "android": "Chaîner des WorkRequest dans WorkManager (via then()/chain de travaux), l'équivalent conceptuel d'un graphe de tâches à exécuter dans le bon ordre.",
+      "keywords": ["topological sort", "DAG", "dependency graph", "Kahn's algorithm", "cycle detection"]
     },
     {
       "id": "merge-intervals",
@@ -106,7 +117,8 @@
       "summary": "Fusionner des intervalles qui se chevauchent",
       "fullDescription": "Trier une liste d'intervalles par borne de début, puis les parcourir en fusionnant chaque intervalle avec le précédent dès que leurs bornes se chevauchent, en O(n log n) dominé par le tri. Le cas d'usage le plus fréquent en entretien : fusionner des événements de calendrier qui se recouvrent dans le temps.",
       "ios": "Fusionner des événements récupérés via EventKit (EKEvent) qui se chevauchent avant de les afficher dans une vue calendrier condensée.",
-      "android": "Même logique sur des événements lus depuis le CalendarContract du SDK Android."
+      "android": "Même logique sur des événements lus depuis le CalendarContract du SDK Android.",
+      "keywords": ["merge intervals", "overlapping intervals", "sort by start", "EventKit", "calendar events"]
     },
     {
       "id": "anagram-frequency",
@@ -115,7 +127,8 @@
       "summary": "Comptage de fréquences par dictionnaire",
       "fullDescription": "Détecter des anagrammes ou regrouper des mots par signature en comptant l'occurrence de chaque caractère dans une hash map, puis en comparant ces signatures entre elles — une alternative en O(n) au tri des caractères de chaque mot.",
       "ios": "Un utilitaire générique de traitement de texte en Swift, sans dépendance particulière à une API UIKit.",
-      "android": "Le même algorithme, écrit en Kotlin, tout aussi indépendant du SDK Android."
+      "android": "Le même algorithme, écrit en Kotlin, tout aussi indépendant du SDK Android.",
+      "keywords": ["anagram", "frequency map", "character count", "hash map", "sorting"]
     },
     {
       "id": "list-diffing",
@@ -124,7 +137,8 @@
       "summary": "Calculer les changements entre deux versions d'une liste",
       "fullDescription": "Comparer une ancienne et une nouvelle liste de données pour produire un ensemble minimal d'insertions/suppressions/déplacements à animer, via un algorithme de diff façon Myers ou un diff simplifié basé sur des hash d'identité et d'égalité de contenu.",
       "ios": "UITableView/UICollectionView DiffableDataSource calcule ce diff automatiquement à partir d'un snapshot, à condition que les éléments soient Hashable (et idéalement Identifiable) pour distinguer identité et changement de contenu.",
-      "android": "ListAdapter combiné à DiffUtil.ItemCallback côté RecyclerView fait le même calcul, en distinguant areItemsTheSame (identité) et areContentsTheSame (égalité de contenu)."
+      "android": "ListAdapter combiné à DiffUtil.ItemCallback côté RecyclerView fait le même calcul, en distinguant areItemsTheSame (identité) et areContentsTheSame (égalité de contenu).",
+      "keywords": ["list diffing", "Myers diff", "DiffableDataSource", "DiffUtil", "Hashable / Identifiable"]
     },
     {
       "id": "infinite-scroll",
@@ -133,7 +147,8 @@
       "summary": "Chargement progressif avec annulation des requêtes obsolètes",
       "fullDescription": "Charger davantage de données quand l'utilisateur approche de la fin d'une liste, en définissant un seuil de prefetch avant le dernier élément visible, en annulant les requêtes devenues obsolètes si l'utilisateur scrolle vite, et en garantissant que la réutilisation des cellules n'affiche jamais les données d'une ancienne requête en attente.",
       "ios": "UITableViewDataSourcePrefetching pour déclencher le chargement en avance, et annulation d'un URLSessionTask en cours dans prepareForReuse pour éviter qu'une réponse tardive n'écrase le contenu d'une cellule réutilisée.",
-      "android": "Paging3 gère nativement le seuil de prefetch et l'invalidation ; en implémentation manuelle, un OnScrollListener déclenche le chargement et un Job de coroutine annulé dans onViewRecycled évite le même problème de réutilisation."
+      "android": "Paging3 gère nativement le seuil de prefetch et l'invalidation ; en implémentation manuelle, un OnScrollListener déclenche le chargement et un Job de coroutine annulé dans onViewRecycled évite le même problème de réutilisation.",
+      "keywords": ["infinite scroll", "pagination", "prefetch", "cell reuse", "request cancellation"]
     },
     {
       "id": "image-cache",
@@ -142,7 +157,8 @@
       "summary": "Cache mémoire + disque avec décodage hors thread principal",
       "fullDescription": "Cache à deux niveaux : un cache mémoire rapide (souvent LRU) pour l'accès immédiat, un cache disque persistant pour survivre aux redémarrages, avec une politique d'éviction basée sur la taille ou l'ancienneté, et un décodage d'image toujours effectué hors du thread principal pour ne pas bloquer l'interface.",
       "ios": "NSCache pour le niveau mémoire, un répertoire dans Caches/ pour le niveau disque, décodage via ImageIO sur une file de fond avant de repasser sur le thread principal pour l'affichage.",
-      "android": "Glide ou Coil implémentent nativement ce cache à deux niveaux ; en version manuelle, LruCache pour la mémoire, le cache disque de OkHttp ou un répertoire dédié pour le disque, et décodage via BitmapFactory dans une coroutine sur Dispatchers.IO."
+      "android": "Glide ou Coil implémentent nativement ce cache à deux niveaux ; en version manuelle, LruCache pour la mémoire, le cache disque de OkHttp ou un répertoire dédié pour le disque, et décodage via BitmapFactory dans une coroutine sur Dispatchers.IO.",
+      "keywords": ["image cache", "two-tier cache", "memory + disk", "Glide / Coil", "background decoding"]
     },
     {
       "id": "flatten-tree",
@@ -151,7 +167,8 @@
       "summary": "Aplatir une structure arborescente en liste sectionnée/expandable",
       "fullDescription": "Transformer une structure arborescente (sections, sous-sections, éléments) en une liste plate à une dimension adaptée à un composant de liste, en conservant la profondeur et l'état d'expansion de chaque nœud, et en ré-aplatissant dynamiquement quand une section est repliée ou dépliée.",
       "ios": "Aplatir récursivement vers des sections/rows pour une UITableView, chaque ligne portant son niveau de profondeur et un identifiant de nœud pour gérer le repli au tap.",
-      "android": "Même aplatissement récursif pour un RecyclerView, avec un ViewType différent par niveau et un état d'expansion conservé par identifiant de nœud."
+      "android": "Même aplatissement récursif pour un RecyclerView, avec un ViewType différent par niveau et un état d'expansion conservé par identifiant de nœud.",
+      "keywords": ["flatten tree", "expandable list", "nested sections", "recursion", "ViewType per depth"]
     }
   ]
 }

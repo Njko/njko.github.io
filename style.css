@@ -124,10 +124,10 @@ h1 {
 
 .result-card {
   background: var(--card-bg);
-  border-radius: 16px;
-  padding: 1.5rem;
-  max-width: 480px;
-  width: 100%;
+  border-radius: 24px;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  max-width: 1100px;
+  width: 90%;
   box-shadow: 0 20px 50px var(--shadow);
   text-align: left;
 }
@@ -135,37 +135,62 @@ h1 {
 .result-card h2 {
   margin-top: 0;
   color: var(--accent);
+  font-size: clamp(1.75rem, 4vw, 3rem);
+}
+
+.result-card > p {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  line-height: 1.5;
+}
+
+.result-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.25rem 0;
+}
+
+.keyword-pill {
+  background: rgba(255, 214, 10, 0.12);
+  border: 1px solid rgba(255, 214, 10, 0.4);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .result-platforms {
   display: flex;
-  gap: 1rem;
-  margin: 1rem 0;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
 }
 
 .platform-card {
   flex: 1;
   background: var(--bg-alt);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
 }
 
 .platform-card h3 {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
 }
 
 .platform-card p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  line-height: 1.5;
   opacity: 0.9;
 }
 
 #relaunch-btn {
   width: 100%;
-  font-size: 1rem;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
   font-weight: 700;
-  padding: 0.65rem;
+  padding: 1rem;
   border: none;
   border-radius: 999px;
   background: var(--accent);
