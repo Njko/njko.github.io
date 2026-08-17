@@ -18,10 +18,15 @@ const resultKeywords = document.getElementById('result-keywords');
 const resultIos = document.getElementById('result-ios');
 const resultAndroid = document.getElementById('result-android');
 const relaunchButton = document.getElementById('relaunch-btn');
+const wheelView = document.getElementById('wheel-view');
+const listView = document.getElementById('list-view');
+const algoList = document.getElementById('algo-list');
+const toggleViewButton = document.getElementById('toggle-view-btn');
 
 let algorithms = [];
 let currentRotation = 0;
 let isSpinning = false;
+let currentView = 'wheel';
 
 async function loadAlgorithms() {
   const response = await fetch('algorithms.json');
@@ -178,9 +183,63 @@ function hideResultPanel() {
   resultPanel.hidden = true;
 }
 
+function renderAlgorithmList() {
+  algoList.replaceChildren(
+    ...algorithms.map((algo, i) => {
+      const item = document.createElement('li');
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'algo-list-item';
+      button.addEventListener('click', () => showResult(algo));
+
+      const swatch = document.createElement('span');
+      swatch.className = 'algo-list-swatch';
+      swatch.style.backgroundColor = PALETTE[i % PALETTE.length];
+
+      const name = document.createElement('span');
+      name.className = 'algo-list-name';
+      name.textContent = algo.name;
+
+      const summary = document.createElement('span');
+      summary.className = 'algo-list-summary';
+      summary.textContent = algo.summary;
+
+      button.append(swatch, name, summary);
+      item.appendChild(button);
+      return item;
+    })
+  );
+}
+
+function showListView() {
+  currentView = 'list';
+  wheelView.hidden = true;
+  listView.hidden = false;
+  toggleViewButton.textContent = '🎡 Voir la roue';
+}
+
+function showWheelView() {
+  currentView = 'wheel';
+  listView.hidden = true;
+  wheelView.hidden = false;
+  toggleViewButton.textContent = '📋 Voir la liste';
+  resizeCanvas();
+  drawWheel(currentRotation);
+}
+
+function handleToggleViewClick() {
+  if (currentView === 'wheel') {
+    showListView();
+  } else {
+    showWheelView();
+  }
+}
+
 function showLoadError() {
   loadError.hidden = false;
   spinButton.disabled = true;
+  toggleViewButton.disabled = true;
 }
 
 async function init() {
@@ -192,12 +251,14 @@ async function init() {
   }
   resizeCanvas();
   drawWheel(currentRotation);
+  renderAlgorithmList();
   window.addEventListener('resize', () => {
     resizeCanvas();
     drawWheel(currentRotation);
   });
   spinButton.addEventListener('click', handleSpinClick);
   relaunchButton.addEventListener('click', hideResultPanel);
+  toggleViewButton.addEventListener('click', handleToggleViewClick);
 }
 
 init();

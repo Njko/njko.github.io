@@ -210,6 +210,10 @@ h1 {
   align-items: center;
 }
 
+.wheel-view[hidden] {
+  display: none;
+}
+
 .list-view {
   width: min(90vw, 700px);
   margin: 1rem 0;
