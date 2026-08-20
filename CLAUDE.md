@@ -23,12 +23,12 @@ python -m http.server 8000
 
 - **`index.html`** — Page structure: the wheel canvas, spin button, and the result panel markup.
 - **`style.css`** — Casino-style visual design, layout, and responsive rules (the iOS/Android result cards stack vertically below 600px).
-- **`wheel.js`** — All game logic: fetches `algorithms.json`, draws the wheel on a `<canvas>` (Canvas 2D API), computes the winning rotation, animates the 3-second decelerating spin (`requestAnimationFrame` + `easeOutCubic`), and renders the result panel including the exercise accordion (Swift/Kotlin tabs, solution reveal).
+- **`wheel.js`** — All game logic: fetches `algorithms.json`, draws the wheel on a `<canvas>` (Canvas 2D API), computes the winning rotation, animates the decelerating spin with Wheel-of-Fortune-style peg/pointer physics (`requestAnimationFrame` + `easeOutQuint`), and renders the result panel including the exercise accordion (Swift/Kotlin tabs, solution reveal).
 - **`algorithms.json`** — Data store for the 17 algorithms. Each entry: `id`, `name`, `category` (`structure` | `algorithme` | `ios-specifique`, informative only), `summary`, `fullDescription`, `ios`, `android`, `keywords`, `docUrl`, `practiceUrl` (optional), and `exercises` (3 levels — facile/moyen/difficile — each with a `statement` and per-language `swift`/`kotlin` objects containing `signature`, `solution`, and `tests`).
 
-**Data flow:** Page load → fetch `algorithms.json` → draw the static wheel → user clicks "Lancer la roue" → uniform random pick (with replacement) → 3s decelerating rotation animation → result panel shows the winning algorithm's description and iOS/Android detail.
+**Data flow:** Page load → fetch `algorithms.json` → draw the static wheel → user clicks "Lancer la roue" → uniform random pick (with replacement) → decelerating rotation animation → result panel shows the winning algorithm's description and iOS/Android detail.
 
-**Spin duration:** fixed at 3000ms, `easeOutCubic` easing for the deceleration effect.
+**Spin animation:** fixed at `SPIN_DURATION_MS` = 4500ms, `easeOutQuint` easing for the deceleration. A separate `#wheel-pointer` element simulates a physical peg/pointer: each time the rotating wheel crosses a sector boundary, the pointer deflects (amplitude tied to the wheel's instantaneous speed, tapering off near the end of the spin) then springs back through a decaying cosine "wobble" before settling — see `animateSpin` in `wheel.js` for the exact model (`POINTER_MAX_DEFLECTION_DEG`, `POINTER_DECAY_MS`, `POINTER_OSCILLATION_MS`, `POINTER_TAPER_RATIO`).
 
 ## Content Language
 
