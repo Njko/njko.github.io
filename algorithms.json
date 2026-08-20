@@ -138,7 +138,80 @@
       "fullDescription": "Tableau de taille fixe avec deux index (lecture/écriture) qui bouclent modulo la capacité, permettant d'écrire et lire en continu sans réallocation ni décalage d'éléments : une fois la capacité atteinte, chaque nouvelle écriture écrase la donnée la plus ancienne. Utilisé partout où des données arrivent en flux à débit régulier et où seules les N dernières valeurs comptent.",
       "ios": "Buffers audio d'AVAudioEngine, ou agrégation d'échantillons de capteurs (CoreMotion) avant traitement par lot.",
       "android": "Buffers d'AudioTrack/AudioRecord pour le flux audio, ou batching d'échantillons de capteurs via SensorManager.",
-      "keywords": ["ring buffer", "circular buffer", "audio buffer", "AVAudioEngine", "SensorManager"]
+      "keywords": ["ring buffer", "circular buffer", "audio buffer", "AVAudioEngine", "SensorManager"],
+      "docUrl": "https://en.wikipedia.org/wiki/Circular_buffer",
+      "practiceUrl": "https://leetcode.com/problems/moving-average-from-data-stream/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Buffer circulaire avec écrasement",
+          "statement": "Implémenter un buffer circulaire à capacité fixe avec deux opérations : write(value), qui ajoute une valeur (toujours en écrivant, y compris quand le buffer est plein — dans ce cas la valeur la plus ancienne est silencieusement écrasée), et readAll(), qui renvoie le contenu actuel du buffer, de la valeur la plus ancienne à la plus récente, sans le modifier.",
+          "swift": {
+            "signature": "class RingBuffer {\n    init(capacity: Int) { }\n    func write(_ value: Int) { }\n    func readAll() -> [Int] { }\n}",
+            "solution": "class RingBuffer {\n    private var buffer: [Int?]\n    private var writeIndex = 0\n    private var count = 0\n    private let capacity: Int\n\n    init(capacity: Int) {\n        self.capacity = capacity\n        self.buffer = Array(repeating: nil, count: capacity)\n    }\n\n    func write(_ value: Int) {\n        buffer[writeIndex] = value\n        writeIndex = (writeIndex + 1) % capacity\n        count = Swift.min(count + 1, capacity)\n    }\n\n    func readAll() -> [Int] {\n        guard count > 0 else { return [] }\n        let start = count < capacity ? 0 : writeIndex\n        var result: [Int] = []\n        for i in 0..<count {\n            let idx = (start + i) % capacity\n            if let value = buffer[idx] {\n                result.append(value)\n            }\n        }\n        return result\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class RingBuffer(private val capacity: Int) {\n    fun write(value: Int) { }\n    fun readAll(): List<Int> { }\n}",
+            "solution": "class RingBuffer(private val capacity: Int) {\n    private val buffer = arrayOfNulls<Int>(capacity)\n    private var writeIndex = 0\n    private var count = 0\n\n    fun write(value: Int) {\n        buffer[writeIndex] = value\n        writeIndex = (writeIndex + 1) % capacity\n        count = minOf(count + 1, capacity)\n    }\n\n    fun readAll(): List<Int> {\n        if (count == 0) return emptyList()\n        val start = if (count < capacity) 0 else writeIndex\n        val result = mutableListOf<Int>()\n        for (i in 0 until count) {\n            val idx = (start + i) % capacity\n            buffer[idx]?.let { result.add(it) }\n        }\n        return result\n    }\n}"
+          },
+          "tests": [
+            {
+              "input": "capacity=3; write(1); write(2); write(3); readAll()",
+              "output": "[1, 2, 3] (buffer pas encore plein d'écrasements, contenu dans l'ordre d'écriture)"
+            },
+            {
+              "input": "suite: write(4); write(5); readAll()",
+              "output": "[3, 4, 5] (1 et 2 ont été écrasés par les nouvelles écritures)"
+            }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Buffer circulaire avec moyenne et dernières valeurs",
+          "statement": "Étendre le buffer circulaire avec average(), qui renvoie la moyenne de toutes les valeurs actuellement présentes (ou une absence si le buffer est vide), et latest(n), qui renvoie les n valeurs les plus récentes dans leur ordre d'écriture (ou moins de n si le buffer en contient moins).",
+          "swift": {
+            "signature": "class RingBufferWithStats {\n    init(capacity: Int) { }\n    func write(_ value: Int) { }\n    func average() -> Double? { }\n    func latest(_ n: Int) -> [Int] { }\n}",
+            "solution": "class RingBufferWithStats {\n    private var buffer: [Int?]\n    private var writeIndex = 0\n    private var count = 0\n    private let capacity: Int\n\n    init(capacity: Int) {\n        self.capacity = capacity\n        self.buffer = Array(repeating: nil, count: capacity)\n    }\n\n    func write(_ value: Int) {\n        buffer[writeIndex] = value\n        writeIndex = (writeIndex + 1) % capacity\n        count = Swift.min(count + 1, capacity)\n    }\n\n    private func readAll() -> [Int] {\n        guard count > 0 else { return [] }\n        let start = count < capacity ? 0 : writeIndex\n        var result: [Int] = []\n        for i in 0..<count {\n            let idx = (start + i) % capacity\n            if let value = buffer[idx] {\n                result.append(value)\n            }\n        }\n        return result\n    }\n\n    func average() -> Double? {\n        let values = readAll()\n        guard !values.isEmpty else { return nil }\n        return Double(values.reduce(0, +)) / Double(values.count)\n    }\n\n    func latest(_ n: Int) -> [Int] {\n        let values = readAll()\n        return Array(values.suffix(Swift.max(n, 0)))\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class RingBufferWithStats(private val capacity: Int) {\n    fun write(value: Int) { }\n    fun average(): Double? { }\n    fun latest(n: Int): List<Int> { }\n}",
+            "solution": "class RingBufferWithStats(private val capacity: Int) {\n    private val buffer = arrayOfNulls<Int>(capacity)\n    private var writeIndex = 0\n    private var count = 0\n\n    fun write(value: Int) {\n        buffer[writeIndex] = value\n        writeIndex = (writeIndex + 1) % capacity\n        count = minOf(count + 1, capacity)\n    }\n\n    private fun readAll(): List<Int> {\n        if (count == 0) return emptyList()\n        val start = if (count < capacity) 0 else writeIndex\n        val result = mutableListOf<Int>()\n        for (i in 0 until count) {\n            val idx = (start + i) % capacity\n            buffer[idx]?.let { result.add(it) }\n        }\n        return result\n    }\n\n    fun average(): Double? {\n        val values = readAll()\n        if (values.isEmpty()) return null\n        return values.sum().toDouble() / values.size\n    }\n\n    fun latest(n: Int): List<Int> {\n        val values = readAll()\n        return values.takeLast(maxOf(n, 0))\n    }\n}"
+          },
+          "tests": [
+            {
+              "input": "capacity=4; write(10); write(20); write(30); average()",
+              "output": "20.0 (moyenne de 10, 20, 30)"
+            },
+            {
+              "input": "suite: write(40); write(50); latest(2)",
+              "output": "[40, 50] (10 a été écrasé ; les 2 valeurs les plus récentes parmi [20, 30, 40, 50])"
+            }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Buffer circulaire avec curseur de lecture",
+          "statement": "Étendre le buffer circulaire pour suivre ce qui a déjà été lu : consumeNew() renvoie, dans l'ordre d'écriture, uniquement les valeurs écrites depuis le dernier appel à consumeNew() (ou depuis le début), puis avance le curseur de lecture. Si des valeurs non encore consommées ont été écrasées entre-temps par de nouvelles écritures (le buffer a tourné plus vite que la lecture), elles sont définitivement perdues : consumeNew() doit alors renvoyer uniquement les valeurs encore présentes en mémoire, sans erreur ni donnée invalide, en faisant avancer le curseur au-delà des valeurs perdues.",
+          "swift": {
+            "signature": "class RingBufferWithCursor {\n    init(capacity: Int) { }\n    func write(_ value: Int) { }\n    func consumeNew() -> [Int] { }\n}",
+            "solution": "class RingBufferWithCursor {\n    private var buffer: [Int?]\n    private var writeIndex = 0\n    private var count = 0\n    private let capacity: Int\n    private var totalWritten = 0\n    private var readCursor = 0\n\n    init(capacity: Int) {\n        self.capacity = capacity\n        self.buffer = Array(repeating: nil, count: capacity)\n    }\n\n    func write(_ value: Int) {\n        buffer[writeIndex] = value\n        writeIndex = (writeIndex + 1) % capacity\n        count = Swift.min(count + 1, capacity)\n        totalWritten += 1\n    }\n\n    private func readAll() -> [Int] {\n        guard count > 0 else { return [] }\n        let start = count < capacity ? 0 : writeIndex\n        var result: [Int] = []\n        for i in 0..<count {\n            let idx = (start + i) % capacity\n            if let value = buffer[idx] {\n                result.append(value)\n            }\n        }\n        return result\n    }\n\n    func consumeNew() -> [Int] {\n        let oldestAvailableSeq = totalWritten - count\n        if readCursor < oldestAvailableSeq {\n            readCursor = oldestAvailableSeq\n        }\n        let newCount = totalWritten - readCursor\n        readCursor = totalWritten\n        guard newCount > 0 else { return [] }\n        return Array(readAll().suffix(newCount))\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class RingBufferWithCursor(private val capacity: Int) {\n    fun write(value: Int) { }\n    fun consumeNew(): List<Int> { }\n}",
+            "solution": "class RingBufferWithCursor(private val capacity: Int) {\n    private val buffer = arrayOfNulls<Int>(capacity)\n    private var writeIndex = 0\n    private var count = 0\n    private var totalWritten = 0\n    private var readCursor = 0\n\n    fun write(value: Int) {\n        buffer[writeIndex] = value\n        writeIndex = (writeIndex + 1) % capacity\n        count = minOf(count + 1, capacity)\n        totalWritten++\n    }\n\n    private fun readAll(): List<Int> {\n        if (count == 0) return emptyList()\n        val start = if (count < capacity) 0 else writeIndex\n        val result = mutableListOf<Int>()\n        for (i in 0 until count) {\n            val idx = (start + i) % capacity\n            buffer[idx]?.let { result.add(it) }\n        }\n        return result\n    }\n\n    fun consumeNew(): List<Int> {\n        val oldestAvailableSeq = totalWritten - count\n        if (readCursor < oldestAvailableSeq) {\n            readCursor = oldestAvailableSeq\n        }\n        val newCount = totalWritten - readCursor\n        readCursor = totalWritten\n        if (newCount <= 0) return emptyList()\n        return readAll().takeLast(newCount)\n    }\n}"
+          },
+          "tests": [
+            {
+              "input": "capacity=3; write(1); write(2); write(3); consumeNew()",
+              "output": "[1, 2, 3] (tout est nouveau, rien n'a encore été écrasé)"
+            },
+            {
+              "input": "suite: write(4); write(5); write(6); write(7); consumeNew()",
+              "output": "[5, 6, 7] (la valeur 4, jamais consommée, a été écrasée avant lecture : le curseur saute automatiquement au plus ancien élément encore disponible)"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "stack",
