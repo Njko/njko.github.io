@@ -21,6 +21,7 @@ const resultAndroid = document.getElementById('result-android');
 const resultDocLink = document.getElementById('result-doc-link');
 const resultPracticeLink = document.getElementById('result-practice-link');
 const resultExercises = document.getElementById('result-exercises');
+const pointerEl = document.getElementById('wheel-pointer');
 const relaunchButton = document.getElementById('relaunch-btn');
 const wheelView = document.getElementById('wheel-view');
 const listView = document.getElementById('list-view');
@@ -94,11 +95,33 @@ function drawWheel(rotation) {
     ctx.fillText(label, radius - 14, 0);
     ctx.restore();
   });
+
+  ctx.fillStyle = '#ffe066';
+  ctx.strokeStyle = '#7a5c00';
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowBlur = 3;
+  ctx.shadowOffsetY = 1;
+  for (let i = 0; i < algorithms.length; i++) {
+    const boundaryAngle = i * sectorAngle;
+    const pegX = (radius - 4) * Math.cos(boundaryAngle);
+    const pegY = (radius - 4) * Math.sin(boundaryAngle);
+    ctx.beginPath();
+    ctx.arc(pegX, pegY, PEG_RADIUS, 0, TWO_PI);
+    ctx.fill();
+    ctx.stroke();
+  }
+
   ctx.restore();
 }
 
 const EXTRA_SPINS = 6;
-const SPIN_DURATION_MS = 3000;
+const SPIN_DURATION_MS = 4500;
+const PEG_RADIUS = 5;
+const POINTER_MAX_DEFLECTION_DEG = 30;
+const POINTER_DECAY_MS = 140;
+const POINTER_OSCILLATION_MS = 90;
+const POINTER_TAPER_RATIO = 0.05;
 
 function normalizeAngle(angle) {
   return ((angle % TWO_PI) + TWO_PI) % TWO_PI;
@@ -118,22 +141,52 @@ function computeFinalRotation(fromRotation, winningIndex, sectorCount) {
   return fromRotation + EXTRA_SPINS * TWO_PI + delta;
 }
 
-function easeOutCubic(t) {
-  return 1 - Math.pow(1 - t, 3);
+function easeOutQuint(t) {
+  return 1 - Math.pow(1 - t, 5);
 }
 
 function animateSpin(fromRotation, toRotation, duration, onComplete) {
   const startTime = performance.now();
+  const sectorAngle = TWO_PI / algorithms.length;
+  let lastPegIndex = Math.floor(fromRotation / sectorAngle);
+  let lastHitTime = startTime - 10000;
+  let lastHitAmplitude = 0;
+
   function frame(now) {
     const elapsed = now - startTime;
     const t = Math.min(elapsed / duration, 1);
-    const eased = easeOutCubic(t);
+    const eased = easeOutQuint(t);
     currentRotation = fromRotation + (toRotation - fromRotation) * eased;
+
+    const currentPegIndex = Math.floor(currentRotation / sectorAngle);
+    if (currentPegIndex !== lastPegIndex) {
+      lastPegIndex = currentPegIndex;
+      lastHitTime = now;
+      // Impact strength follows the wheel's instantaneous speed (the
+      // derivative of easeOutQuint, normalized to 1 at t=0), but stays at
+      // full strength until that speed drops under POINTER_TAPER_RATIO of
+      // its peak — real "clicks" should stay springy through most of the
+      // spin, only softening once the wheel is genuinely down to its last,
+      // near-imperceptibly slow crawl, instead of stiffening throughout
+      // the whole deceleration.
+      const speedRatio = Math.pow(1 - t, 4);
+      lastHitAmplitude = POINTER_MAX_DEFLECTION_DEG * Math.min(1, speedRatio / POINTER_TAPER_RATIO);
+    }
+    const timeSinceHit = now - lastHitTime;
+    const envelope = Math.exp(-timeSinceHit / POINTER_DECAY_MS);
+    const wobble = Math.cos((TWO_PI * timeSinceHit) / POINTER_OSCILLATION_MS);
+    // Negative angle swings the pointer's tip to the right (clockwise wheel
+    // motion pushes it that way on impact) before it springs back and
+    // wobbles like a soft rubber flapper settling to rest.
+    const deflectionDeg = -lastHitAmplitude * envelope * wobble;
+    pointerEl.style.transform = `translateX(-50%) rotate(${deflectionDeg}deg)`;
+
     drawWheel(currentRotation);
     if (t < 1) {
       requestAnimationFrame(frame);
     } else {
       currentRotation = toRotation;
+      pointerEl.style.transform = 'translateX(-50%) rotate(0deg)';
       onComplete();
     }
   }
