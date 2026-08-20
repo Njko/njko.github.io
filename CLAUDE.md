@@ -17,7 +17,7 @@ python -m http.server 8000
 
 **Deployment:** Automatic via GitHub Pages on push to main. No CI/CD pipeline.
 
-**No tests or linting configured.** Verification is manual: `node --check wheel.js` for syntax, `node -e` scripts for validating `algorithms.json`, and browser checks against a local server.
+**No tests or linting configured.** Verification is manual: `node --check wheel.js` for syntax, `node validate-algorithms.js` for validating `algorithms.json` (checks the `docUrl`/`practiceUrl`/`exercises` schema), and browser checks against a local server.
 
 ## Architecture
 
