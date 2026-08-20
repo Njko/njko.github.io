@@ -871,7 +871,62 @@
       "fullDescription": "Comparer une ancienne et une nouvelle liste de données pour produire un ensemble minimal d'insertions/suppressions/déplacements à animer, via un algorithme de diff façon Myers ou un diff simplifié basé sur des hash d'identité et d'égalité de contenu.",
       "ios": "En SwiftUI, ForEach(items) diffe automatiquement la liste dès lors que les éléments sont Identifiable avec un identifiant stable — jamais l'index — pour que le framework distingue correctement insertions, suppressions et déplacements et anime la transition.",
       "android": "En Compose, LazyColumn/LazyRow avec items(list, key = { it.id }) diffe automatiquement la liste à partir d'une clé stable — Compose ne recompose que les éléments dont la clé ou le contenu a changé, sans code de diff à écrire soi-même.",
-      "keywords": ["list diffing", "Myers diff", "ForEach", "Identifiable", "stable id"]
+      "keywords": ["list diffing", "Myers diff", "ForEach", "Identifiable", "stable id"],
+      "docUrl": "https://en.wikipedia.org/wiki/Diff#Algorithms",
+      "practiceUrl": "https://leetcode.com/problems/delete-operation-for-two-strings/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Insertions et suppressions par identifiant",
+          "statement": "Étant donné une ancienne et une nouvelle liste d'éléments identifiables (chacun avec un id et une value), écrire insertedIds(old, new), qui renvoie les id présents dans new mais absents de old, et removedIds(old, new), qui renvoie les id présents dans old mais absents de new — dans les deux cas en ne comparant que les id, sans tenir compte de value ni de l'ordre des éléments dans les listes.",
+          "swift": {
+            "signature": "struct Item {\n    let id: Int\n    let value: String\n}\n\nfunc insertedIds(_ old: [Item], _ new: [Item]) -> [Int] { }\nfunc removedIds(_ old: [Item], _ new: [Item]) -> [Int] { }",
+            "solution": "struct Item {\n    let id: Int\n    let value: String\n}\n\nfunc insertedIds(_ old: [Item], _ new: [Item]) -> [Int] {\n    let oldIds = Set(old.map { $0.id })\n    return new.filter { !oldIds.contains($0.id) }.map { $0.id }\n}\n\nfunc removedIds(_ old: [Item], _ new: [Item]) -> [Int] {\n    let newIds = Set(new.map { $0.id })\n    return old.filter { !newIds.contains($0.id) }.map { $0.id }\n}"
+          },
+          "kotlin": {
+            "signature": "data class Item(val id: Int, val value: String)\n\nfun insertedIds(old: List<Item>, new: List<Item>): List<Int> { }\nfun removedIds(old: List<Item>, new: List<Item>): List<Int> { }",
+            "solution": "data class Item(val id: Int, val value: String)\n\nfun insertedIds(old: List<Item>, new: List<Item>): List<Int> {\n    val oldIds = old.map { it.id }.toSet()\n    return new.filter { it.id !in oldIds }.map { it.id }\n}\n\nfun removedIds(old: List<Item>, new: List<Item>): List<Int> {\n    val newIds = new.map { it.id }.toSet()\n    return old.filter { it.id !in newIds }.map { it.id }\n}"
+          },
+          "tests": [
+            { "input": "old = [(id:1,\"a\"), (id:2,\"b\"), (id:3,\"c\")], new = [(id:2,\"b\"), (id:3,\"c\"), (id:4,\"d\")] ; insertedIds(old, new)", "output": "[4] (seul l'id 4 apparaît dans new sans être dans old)" },
+            { "input": "old = [], new = [(id:1,\"x\"), (id:2,\"y\")] ; insertedIds(old, new) puis removedIds(old, new)", "output": "insertedIds renvoie [1, 2] (old est vide, tout est nouveau) ; removedIds renvoie [] (old ne contient aucun id à retrouver absent de new)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Diff complet : insertions, suppressions, mises à jour",
+          "statement": "Étendre le diff pour distinguer, en une seule passe, trois catégories entre old et new (toujours comparées par id) : les éléments insérés (id présent uniquement dans new), les éléments supprimés (id présent uniquement dans old), et les éléments mis à jour (même id présent dans old et dans new, mais avec une value différente). diff(old, new) renvoie ces trois listes ; les éléments mis à jour doivent porter la nouvelle value, celle de new.",
+          "swift": {
+            "signature": "struct Item {\n    let id: Int\n    let value: String\n}\n\nstruct DiffResult {\n    let inserted: [Item]\n    let removed: [Item]\n    let updated: [Item]\n}\n\nfunc diff(_ old: [Item], _ new: [Item]) -> DiffResult { }",
+            "solution": "struct Item {\n    let id: Int\n    let value: String\n}\n\nstruct DiffResult {\n    let inserted: [Item]\n    let removed: [Item]\n    let updated: [Item]\n}\n\nfunc diff(_ old: [Item], _ new: [Item]) -> DiffResult {\n    let oldById = Dictionary(uniqueKeysWithValues: old.map { ($0.id, $0) })\n    let newById = Dictionary(uniqueKeysWithValues: new.map { ($0.id, $0) })\n\n    let inserted = new.filter { oldById[$0.id] == nil }\n    let removed = old.filter { newById[$0.id] == nil }\n    let updated = new.filter { item in\n        guard let oldItem = oldById[item.id] else { return false }\n        return oldItem.value != item.value\n    }\n\n    return DiffResult(inserted: inserted, removed: removed, updated: updated)\n}"
+          },
+          "kotlin": {
+            "signature": "data class Item(val id: Int, val value: String)\n\ndata class DiffResult(\n    val inserted: List<Item>,\n    val removed: List<Item>,\n    val updated: List<Item>\n)\n\nfun diff(old: List<Item>, new: List<Item>): DiffResult { }",
+            "solution": "data class Item(val id: Int, val value: String)\n\ndata class DiffResult(\n    val inserted: List<Item>,\n    val removed: List<Item>,\n    val updated: List<Item>\n)\n\nfun diff(old: List<Item>, new: List<Item>): DiffResult {\n    val oldById = old.associateBy { it.id }\n    val newById = new.associateBy { it.id }\n\n    val inserted = new.filter { oldById[it.id] == null }\n    val removed = old.filter { newById[it.id] == null }\n    val updated = new.filter { item ->\n        val oldItem = oldById[item.id]\n        oldItem != null && oldItem.value != item.value\n    }\n\n    return DiffResult(inserted, removed, updated)\n}"
+          },
+          "tests": [
+            { "input": "old = [(id:1,\"a\"), (id:2,\"b\"), (id:3,\"c\")], new = [(id:1,\"a\"), (id:2,\"B\"), (id:4,\"d\")] ; diff(old, new)", "output": "inserted = [(id:4,\"d\")] ; removed = [(id:3,\"c\")] ; updated = [(id:2,\"B\")] (l'id 1 est inchangé donc absent des trois listes)" },
+            { "input": "old = [(id:1,\"x\")], new = [(id:1,\"x\")] ; diff(old, new)", "output": "inserted = [], removed = [], updated = [] (même id, même value : aucun changement à signaler)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Diff complet avec détection des déplacements",
+          "statement": "Étendre encore diff pour détecter les déplacements : un élément est déplacé (moved) quand son id ET sa value sont identiques entre old et new, mais que son index a changé. Un élément dont la value a changé reste classé updated, jamais moved, même si son index a également changé — moved exige une value strictement inchangée, sans quoi un vrai algorithme de diff façon Myers ne pourrait pas distinguer un déplacement d'une suppression suivie d'une insertion. diff(old, new) renvoie désormais quatre catégories : inserted, removed, updated et moved, ce dernier sous forme de paires (item, ancien index, nouvel index).",
+          "swift": {
+            "signature": "struct Item {\n    let id: Int\n    let value: String\n}\n\nstruct Moved {\n    let item: Item\n    let fromIndex: Int\n    let toIndex: Int\n}\n\nstruct DiffResult {\n    let inserted: [Item]\n    let removed: [Item]\n    let updated: [Item]\n    let moved: [Moved]\n}\n\nfunc diff(_ old: [Item], _ new: [Item]) -> DiffResult { }",
+            "solution": "struct Item {\n    let id: Int\n    let value: String\n}\n\nstruct Moved {\n    let item: Item\n    let fromIndex: Int\n    let toIndex: Int\n}\n\nstruct DiffResult {\n    let inserted: [Item]\n    let removed: [Item]\n    let updated: [Item]\n    let moved: [Moved]\n}\n\nfunc diff(_ old: [Item], _ new: [Item]) -> DiffResult {\n    let oldById = Dictionary(uniqueKeysWithValues: old.map { ($0.id, $0) })\n    let newById = Dictionary(uniqueKeysWithValues: new.map { ($0.id, $0) })\n    let oldIndexById = Dictionary(uniqueKeysWithValues: old.enumerated().map { ($1.id, $0) })\n    let newIndexById = Dictionary(uniqueKeysWithValues: new.enumerated().map { ($1.id, $0) })\n\n    let inserted = new.filter { oldById[$0.id] == nil }\n    let removed = old.filter { newById[$0.id] == nil }\n\n    var updated: [Item] = []\n    var moved: [Moved] = []\n\n    for item in new {\n        guard let oldItem = oldById[item.id] else { continue }\n        if oldItem.value != item.value {\n            updated.append(item)\n        } else if let fromIndex = oldIndexById[item.id], let toIndex = newIndexById[item.id], fromIndex != toIndex {\n            moved.append(Moved(item: item, fromIndex: fromIndex, toIndex: toIndex))\n        }\n    }\n\n    return DiffResult(inserted: inserted, removed: removed, updated: updated, moved: moved)\n}"
+          },
+          "kotlin": {
+            "signature": "data class Item(val id: Int, val value: String)\n\ndata class Moved(val item: Item, val fromIndex: Int, val toIndex: Int)\n\ndata class DiffResult(\n    val inserted: List<Item>,\n    val removed: List<Item>,\n    val updated: List<Item>,\n    val moved: List<Moved>\n)\n\nfun diff(old: List<Item>, new: List<Item>): DiffResult { }",
+            "solution": "data class Item(val id: Int, val value: String)\n\ndata class Moved(val item: Item, val fromIndex: Int, val toIndex: Int)\n\ndata class DiffResult(\n    val inserted: List<Item>,\n    val removed: List<Item>,\n    val updated: List<Item>,\n    val moved: List<Moved>\n)\n\nfun diff(old: List<Item>, new: List<Item>): DiffResult {\n    val oldById = old.associateBy { it.id }\n    val newById = new.associateBy { it.id }\n    val oldIndexById = old.withIndex().associate { (index, item) -> item.id to index }\n    val newIndexById = new.withIndex().associate { (index, item) -> item.id to index }\n\n    val inserted = new.filter { oldById[it.id] == null }\n    val removed = old.filter { newById[it.id] == null }\n\n    val updated = mutableListOf<Item>()\n    val moved = mutableListOf<Moved>()\n\n    for (item in new) {\n        val oldItem = oldById[item.id] ?: continue\n        if (oldItem.value != item.value) {\n            updated.add(item)\n        } else {\n            val fromIndex = oldIndexById[item.id]\n            val toIndex = newIndexById[item.id]\n            if (fromIndex != null && toIndex != null && fromIndex != toIndex) {\n                moved.add(Moved(item, fromIndex, toIndex))\n            }\n        }\n    }\n\n    return DiffResult(inserted, removed, updated, moved)\n}"
+          },
+          "tests": [
+            { "input": "old = [(id:1,\"a\"), (id:2,\"b\"), (id:3,\"c\")], new = [(id:3,\"c\"), (id:1,\"a\"), (id:4,\"d\")] ; diff(old, new)", "output": "inserted = [(id:4,\"d\")] ; removed = [(id:2,\"b\")] ; updated = [] ; moved = [(id:3, index 2→0), (id:1, index 0→1)] (id 1 et id 3 gardent la même value, seul leur index change)" },
+            { "input": "old = [(id:1,\"a\"), (id:2,\"b\")], new = [(id:2,\"c\"), (id:1,\"a\")] ; diff(old, new)", "output": "inserted = [] ; removed = [] ; updated = [(id:2,\"c\")] ; moved = [(id:1, index 0→1)] (id 2 change à la fois de value et d'index, mais reste classé updated uniquement — jamais moved, car sa value a changé)" }
+          ]
+        }
+      ]
     },
     {
       "id": "infinite-scroll",
