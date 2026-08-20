@@ -323,6 +323,10 @@ h1 {
   transform: translateY(-1px);
 }
 
+.result-link[hidden] {
+  display: none;
+}
+
 .result-exercises {
   display: flex;
   flex-direction: column;
