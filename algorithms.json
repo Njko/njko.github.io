@@ -999,7 +999,62 @@
       "fullDescription": "Cache à deux niveaux : un cache mémoire rapide (souvent LRU) pour l'accès immédiat, un cache disque persistant pour survivre aux redémarrages, avec une politique d'éviction basée sur la taille ou l'ancienneté, et un décodage d'image toujours effectué hors du thread principal pour ne pas bloquer l'interface.",
       "ios": "NSCache pour le niveau mémoire, un répertoire dans Caches/ pour le niveau disque, décodage via ImageIO sur une file de fond avant de repasser sur le thread principal pour l'affichage.",
       "android": "Coil implémente nativement ce cache à deux niveaux et s'intègre directement à Compose via AsyncImage ; en version manuelle, LruCache pour la mémoire, le cache disque d'OkHttp ou un répertoire dédié pour le disque, et décodage via BitmapFactory dans une coroutine sur Dispatchers.IO.",
-      "keywords": ["image cache", "two-tier cache", "memory + disk", "Coil + AsyncImage", "background decoding"]
+      "keywords": ["image cache", "two-tier cache", "memory + disk", "Coil + AsyncImage", "background decoding"],
+      "docUrl": "https://en.wikipedia.org/wiki/Cache_(computing)",
+      "practiceUrl": "https://leetcode.com/problems/lru-cache/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Cache mémoire à capacité fixe",
+          "statement": "Implémenter un cache d'images en mémoire à capacité fixe avec deux opérations : get(key), qui renvoie les octets de l'image associée à la clé (ou une absence), et put(key, bytes), qui insère ou met à jour une image. Quand la capacité est dépassée, évincer l'image la moins récemment utilisée — un accès en lecture OU en écriture sur une clé la rend « récemment utilisée ».",
+          "swift": {
+            "signature": "class MemoryImageCache {\n    init(capacity: Int) { }\n    func get(_ key: String) -> [UInt8]? { }\n    func put(_ key: String, _ bytes: [UInt8]) { }\n}",
+            "solution": "class MemoryImageCache {\n    private let capacity: Int\n    private var store: [String: [UInt8]] = [:]\n    private var order: [String] = [] // du moins récent au plus récent\n\n    init(capacity: Int) {\n        self.capacity = capacity\n    }\n\n    func get(_ key: String) -> [UInt8]? {\n        guard let value = store[key] else { return nil }\n        touch(key)\n        return value\n    }\n\n    func put(_ key: String, _ bytes: [UInt8]) {\n        if store[key] == nil, store.count >= capacity {\n            let oldest = order.removeFirst()\n            store.removeValue(forKey: oldest)\n        }\n        store[key] = bytes\n        touch(key)\n    }\n\n    private func touch(_ key: String) {\n        order.removeAll { $0 == key }\n        order.append(key)\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class MemoryImageCache(private val capacity: Int) {\n    fun get(key: String): ByteArray? { }\n    fun put(key: String, bytes: ByteArray) { }\n}",
+            "solution": "class MemoryImageCache(private val capacity: Int) {\n    private val store = HashMap<String, ByteArray>()\n    private val order = mutableListOf<String>() // du moins récent au plus récent\n\n    fun get(key: String): ByteArray? {\n        val value = store[key] ?: return null\n        touch(key)\n        return value\n    }\n\n    fun put(key: String, bytes: ByteArray) {\n        if (!store.containsKey(key) && store.size >= capacity) {\n            val oldest = order.removeAt(0)\n            store.remove(oldest)\n        }\n        store[key] = bytes\n        touch(key)\n    }\n\n    private fun touch(key: String) {\n        order.remove(key)\n        order.add(key)\n    }\n}"
+          },
+          "tests": [
+            { "input": "capacity=2; put(\"a\", [1,2]); put(\"b\", [3,4]); get(\"a\")", "output": "[1,2] (et la clé \"a\" redevient la plus récente)" },
+            { "input": "suite: put(\"c\", [5,6]) puis get(\"b\")", "output": "absent (clé \"b\" évincée, c'était la moins récemment utilisée)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Cache avec repli disque",
+          "statement": "Étendre le cache d'images avec un niveau disque : get(key) cherche d'abord en mémoire ; si absent, appelle la fonction injectée loadFromDisk(key) qui simule une lecture disque. Si le disque renvoie une valeur, elle est replacée en mémoire (en respectant la capacité et l'éviction LRU) avant d'être renvoyée. Si le disque n'a rien non plus, get(key) renvoie une absence. put(key, bytes) continue d'écrire uniquement en mémoire.",
+          "swift": {
+            "signature": "class DiskBackedImageCache {\n    init(capacity: Int, loadFromDisk: @escaping (String) -> [UInt8]?) { }\n    func get(_ key: String) -> [UInt8]? { }\n    func put(_ key: String, _ bytes: [UInt8]) { }\n}",
+            "solution": "class DiskBackedImageCache {\n    private let capacity: Int\n    private let loadFromDisk: (String) -> [UInt8]?\n    private var store: [String: [UInt8]] = [:]\n    private var order: [String] = []\n\n    init(capacity: Int, loadFromDisk: @escaping (String) -> [UInt8]?) {\n        self.capacity = capacity\n        self.loadFromDisk = loadFromDisk\n    }\n\n    func get(_ key: String) -> [UInt8]? {\n        if let value = store[key] {\n            touch(key)\n            return value\n        }\n        guard let diskValue = loadFromDisk(key) else { return nil }\n        insert(key, diskValue)\n        return diskValue\n    }\n\n    func put(_ key: String, _ bytes: [UInt8]) {\n        insert(key, bytes)\n    }\n\n    private func insert(_ key: String, _ bytes: [UInt8]) {\n        if store[key] == nil, store.count >= capacity {\n            let oldest = order.removeFirst()\n            store.removeValue(forKey: oldest)\n        }\n        store[key] = bytes\n        touch(key)\n    }\n\n    private func touch(_ key: String) {\n        order.removeAll { $0 == key }\n        order.append(key)\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class DiskBackedImageCache(\n    private val capacity: Int,\n    private val loadFromDisk: (String) -> ByteArray?\n) {\n    fun get(key: String): ByteArray? { }\n    fun put(key: String, bytes: ByteArray) { }\n}",
+            "solution": "class DiskBackedImageCache(\n    private val capacity: Int,\n    private val loadFromDisk: (String) -> ByteArray?\n) {\n    private val store = HashMap<String, ByteArray>()\n    private val order = mutableListOf<String>()\n\n    fun get(key: String): ByteArray? {\n        store[key]?.let {\n            touch(key)\n            return it\n        }\n        val diskValue = loadFromDisk(key) ?: return null\n        insert(key, diskValue)\n        return diskValue\n    }\n\n    fun put(key: String, bytes: ByteArray) {\n        insert(key, bytes)\n    }\n\n    private fun insert(key: String, bytes: ByteArray) {\n        if (!store.containsKey(key) && store.size >= capacity) {\n            val oldest = order.removeAt(0)\n            store.remove(oldest)\n        }\n        store[key] = bytes\n        touch(key)\n    }\n\n    private fun touch(key: String) {\n        order.remove(key)\n        order.add(key)\n    }\n}"
+          },
+          "tests": [
+            { "input": "capacity=2, disque contient {\"x\": [9]} ; get(\"x\")", "output": "[9] (absent de la mémoire, trouvé sur disque, puis replacé en mémoire)" },
+            { "input": "suite: get(\"y\") où \"y\" est absent de la mémoire ET du disque", "output": "absent (aucun des deux niveaux ne contient \"y\")" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Cache avec éviction write-through",
+          "statement": "Étendre le cache pour que toute éviction mémoire soit d'abord persistée sur disque : quand put(key, bytes) doit évincer l'élément le moins récemment utilisé pour respecter la capacité, appeler saveToDisk(evictedKey, evictedBytes) (injecté) avant de le retirer de la mémoire. get(key) continue de vérifier la mémoire puis le disque via loadFromDisk (avec repropagation en mémoire sur un hit disque, en respectant l'éviction write-through si cette repropagation déclenche elle-même une éviction). Ainsi, une image évincée de la mémoire reste accessible via get.",
+          "swift": {
+            "signature": "class WriteThroughImageCache {\n    init(\n        capacity: Int,\n        loadFromDisk: @escaping (String) -> [UInt8]?,\n        saveToDisk: @escaping (String, [UInt8]) -> Void\n    ) { }\n    func get(_ key: String) -> [UInt8]? { }\n    func put(_ key: String, _ bytes: [UInt8]) { }\n}",
+            "solution": "class WriteThroughImageCache {\n    private let capacity: Int\n    private let loadFromDisk: (String) -> [UInt8]?\n    private let saveToDisk: (String, [UInt8]) -> Void\n    private var store: [String: [UInt8]] = [:]\n    private var order: [String] = []\n\n    init(\n        capacity: Int,\n        loadFromDisk: @escaping (String) -> [UInt8]?,\n        saveToDisk: @escaping (String, [UInt8]) -> Void\n    ) {\n        self.capacity = capacity\n        self.loadFromDisk = loadFromDisk\n        self.saveToDisk = saveToDisk\n    }\n\n    func get(_ key: String) -> [UInt8]? {\n        if let value = store[key] {\n            touch(key)\n            return value\n        }\n        guard let diskValue = loadFromDisk(key) else { return nil }\n        insert(key, diskValue)\n        return diskValue\n    }\n\n    func put(_ key: String, _ bytes: [UInt8]) {\n        insert(key, bytes)\n    }\n\n    private func insert(_ key: String, _ bytes: [UInt8]) {\n        if store[key] == nil, store.count >= capacity {\n            let oldestKey = order.removeFirst()\n            if let oldestBytes = store.removeValue(forKey: oldestKey) {\n                saveToDisk(oldestKey, oldestBytes)\n            }\n        }\n        store[key] = bytes\n        touch(key)\n    }\n\n    private func touch(_ key: String) {\n        order.removeAll { $0 == key }\n        order.append(key)\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class WriteThroughImageCache(\n    private val capacity: Int,\n    private val loadFromDisk: (String) -> ByteArray?,\n    private val saveToDisk: (String, ByteArray) -> Unit\n) {\n    fun get(key: String): ByteArray? { }\n    fun put(key: String, bytes: ByteArray) { }\n}",
+            "solution": "class WriteThroughImageCache(\n    private val capacity: Int,\n    private val loadFromDisk: (String) -> ByteArray?,\n    private val saveToDisk: (String, ByteArray) -> Unit\n) {\n    private val store = HashMap<String, ByteArray>()\n    private val order = mutableListOf<String>()\n\n    fun get(key: String): ByteArray? {\n        store[key]?.let {\n            touch(key)\n            return it\n        }\n        val diskValue = loadFromDisk(key) ?: return null\n        insert(key, diskValue)\n        return diskValue\n    }\n\n    fun put(key: String, bytes: ByteArray) {\n        insert(key, bytes)\n    }\n\n    private fun insert(key: String, bytes: ByteArray) {\n        if (!store.containsKey(key) && store.size >= capacity) {\n            val oldestKey = order.removeAt(0)\n            store.remove(oldestKey)?.let { oldestBytes ->\n                saveToDisk(oldestKey, oldestBytes)\n            }\n        }\n        store[key] = bytes\n        touch(key)\n    }\n\n    private fun touch(key: String) {\n        order.remove(key)\n        order.add(key)\n    }\n}"
+          },
+          "tests": [
+            { "input": "capacity=1; put(\"a\", [1]); put(\"b\", [2]) (évince \"a\", saveToDisk(\"a\", [1]) appelé avant le retrait mémoire)", "output": "\"a\" n'est plus en mémoire mais saveToDisk a bien été appelé avec (\"a\", [1])" },
+            { "input": "suite: get(\"a\") (absent de la mémoire, présent sur le disque simulé grâce à l'appel précédent)", "output": "[1] (repropagé depuis le disque, évince \"b\" de la mémoire au passage puisque capacity=1)" }
+          ]
+        }
+      ]
     },
     {
       "id": "flatten-tree",
