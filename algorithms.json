@@ -351,7 +351,62 @@
       "fullDescription": "Le debounce retarde l'exécution d'une fonction jusqu'à ce qu'aucun nouvel appel n'ait eu lieu pendant un délai donné (annule et reprogramme à chaque appel) ; le throttle garantit au plus un appel par intervalle fixe. Les deux se codent à la main en gérant l'annulation du travail précédemment planifié.",
       "ios": "Un Task stocké dans une propriété, annulé (task?.cancel()) puis recréé à chaque appel ; il attend via Task.sleep(for:) puis vérifie Task.isCancelled avant d'exécuter l'action — l'idiome de concurrence structurée qui remplace DispatchWorkItem + DispatchQueue.asyncAfter.",
       "android": "Un Job de coroutine stocké dans une propriété, annulé (job.cancel()) puis relancé avec delay(...) dans un nouveau launch ; en Compose, l'idiome courant est snapshotFlow { state }.debounce(300).collectLatest { ... } dans un LaunchedEffect, qui gère l'annulation automatiquement à chaque recomposition.",
-      "keywords": ["debounce", "throttle", "Task.sleep + cancellation", "structured concurrency", "rate limiting"]
+      "keywords": ["debounce", "throttle", "Task.sleep + cancellation", "structured concurrency", "rate limiting"],
+      "docUrl": "https://css-tricks.com/debouncing-throttling-explained-examples/",
+      "practiceUrl": "https://bigfrontend.dev/problem/implement-basic-debounce",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Debounce basique avec horloge simulée",
+          "statement": "Implémenter un debounce sous forme de wrapper autour d'une action : call() enregistre un appel et (re)programme le déclenchement de l'action delayMs après l'instant présent, annulant toute programmation précédente. tick() doit être appelé périodiquement par l'appelant (il joue le rôle de la boucle d'événements) et déclenche l'action une seule fois si l'échéance programmée est atteinte, puis réinitialise l'état. Comme un vrai minuteur ne peut pas être testé de façon déterministe, l'horloge est injectée plutôt que lue depuis l'horloge système (même principe que le TTL du LRU Cache).",
+          "swift": {
+            "signature": "class Debouncer {\n    init(delayMs: Double, now: @escaping () -> Double, action: @escaping () -> Void) { }\n    func call() { }\n    func tick() { }\n}",
+            "solution": "class Debouncer {\n    private let delayMs: Double\n    private let now: () -> Double\n    private let action: () -> Void\n    private var fireAt: Double?\n\n    init(delayMs: Double, now: @escaping () -> Double, action: @escaping () -> Void) {\n        self.delayMs = delayMs\n        self.now = now\n        self.action = action\n    }\n\n    func call() {\n        fireAt = now() + delayMs\n    }\n\n    func tick() {\n        guard let scheduled = fireAt, now() >= scheduled else { return }\n        fireAt = nil\n        action()\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class Debouncer(\n    private val delayMs: Double,\n    private val now: () -> Double,\n    private val action: () -> Unit\n) {\n    fun call() { }\n    fun tick() { }\n}",
+            "solution": "class Debouncer(\n    private val delayMs: Double,\n    private val now: () -> Double,\n    private val action: () -> Unit\n) {\n    private var fireAt: Double? = null\n\n    fun call() {\n        fireAt = now() + delayMs\n    }\n\n    fun tick() {\n        val scheduled = fireAt ?: return\n        if (now() >= scheduled) {\n            fireAt = null\n            action()\n        }\n    }\n}"
+          },
+          "tests": [
+            { "input": "horloge simulée t=0, delayMs=100 ; call() (programme un déclenchement à t=100) ; horloge → t=50 ; call() (annule et reprogramme à t=150) ; horloge → t=100 ; tick()", "output": "action non déclenchée (t=100 < 150 : le second call() a repoussé l'échéance avant que la première n'ait pu se déclencher)" },
+            { "input": "suite : horloge → t=150 ; tick()", "output": "action déclenchée exactement une fois (t=150 atteint l'échéance reprogrammée) ; un tick() supplémentaire ensuite ne redéclenche rien tant qu'aucun nouveau call() n'a eu lieu (état réinitialisé)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Throttle « leading edge »",
+          "statement": "Implémenter un throttle qui garantit au plus un déclenchement par intervalle fixe : call() déclenche l'action immédiatement si c'est le tout premier appel, ou si intervalMs se sont écoulées depuis le dernier déclenchement effectif, et ignore silencieusement l'appel sinon (pas de reprogrammation, contrairement au debounce). L'horloge est injectée pour rester testable sans minuteur réel ni tick() : la décision se prend de façon synchrone à chaque call().",
+          "swift": {
+            "signature": "class Throttler {\n    init(intervalMs: Double, now: @escaping () -> Double, action: @escaping () -> Void) { }\n    func call() { }\n}",
+            "solution": "class Throttler {\n    private let intervalMs: Double\n    private let now: () -> Double\n    private let action: () -> Void\n    private var lastFireAt: Double?\n\n    init(intervalMs: Double, now: @escaping () -> Double, action: @escaping () -> Void) {\n        self.intervalMs = intervalMs\n        self.now = now\n        self.action = action\n    }\n\n    func call() {\n        let current = now()\n        if let last = lastFireAt, current < last + intervalMs {\n            return\n        }\n        lastFireAt = current\n        action()\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class Throttler(\n    private val intervalMs: Double,\n    private val now: () -> Double,\n    private val action: () -> Unit\n) {\n    fun call() { }\n}",
+            "solution": "class Throttler(\n    private val intervalMs: Double,\n    private val now: () -> Double,\n    private val action: () -> Unit\n) {\n    private var lastFireAt: Double? = null\n\n    fun call() {\n        val current = now()\n        val last = lastFireAt\n        if (last != null && current < last + intervalMs) {\n            return\n        }\n        lastFireAt = current\n        action()\n    }\n}"
+          },
+          "tests": [
+            { "input": "horloge simulée t=0, intervalMs=100 ; call() (aucun déclenchement précédent, exécute immédiatement) ; horloge → t=40 ; call()", "output": "action déclenchée une seule fois au total (à t=0) ; l'appel à t=40 est ignoré silencieusement (moins de 100ms écoulées depuis le dernier déclenchement)" },
+            { "input": "suite : horloge → t=100 ; call()", "output": "action déclenchée une deuxième fois (exactement 100ms se sont écoulées depuis le déclenchement précédent à t=0, l'intervalle est respecté)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Debounce avec attente maximale (maxWait)",
+          "statement": "Combiner debounce et attente maximale, à la manière de l'option maxWait de Lodash : call() enregistre un appel et repousse le déclenchement de delayMs comme un debounce classique, mais si des appels continus repoussent indéfiniment cette échéance, l'action doit malgré tout se déclencher au plus tard maxWaitMs après le tout premier appel de la rafale en cours. tick() doit être appelé périodiquement et déclenche l'action dès que l'une des deux échéances (délai de debounce normal ou attente maximale) est atteinte, puis réinitialise l'état pour une nouvelle rafale.",
+          "swift": {
+            "signature": "class MaxWaitDebouncer {\n    init(delayMs: Double, maxWaitMs: Double, now: @escaping () -> Double, action: @escaping () -> Void) { }\n    func call() { }\n    func tick() { }\n}",
+            "solution": "class MaxWaitDebouncer {\n    private let delayMs: Double\n    private let maxWaitMs: Double\n    private let now: () -> Double\n    private let action: () -> Void\n    private var fireAt: Double?\n    private var firstCallAt: Double?\n\n    init(delayMs: Double, maxWaitMs: Double, now: @escaping () -> Double, action: @escaping () -> Void) {\n        self.delayMs = delayMs\n        self.maxWaitMs = maxWaitMs\n        self.now = now\n        self.action = action\n    }\n\n    func call() {\n        let current = now()\n        if firstCallAt == nil {\n            firstCallAt = current\n        }\n        fireAt = current + delayMs\n    }\n\n    func tick() {\n        guard let scheduled = fireAt, let first = firstCallAt else { return }\n        let current = now()\n        if current >= scheduled || current >= first + maxWaitMs {\n            fireAt = nil\n            firstCallAt = nil\n            action()\n        }\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class MaxWaitDebouncer(\n    private val delayMs: Double,\n    private val maxWaitMs: Double,\n    private val now: () -> Double,\n    private val action: () -> Unit\n) {\n    fun call() { }\n    fun tick() { }\n}",
+            "solution": "class MaxWaitDebouncer(\n    private val delayMs: Double,\n    private val maxWaitMs: Double,\n    private val now: () -> Double,\n    private val action: () -> Unit\n) {\n    private var fireAt: Double? = null\n    private var firstCallAt: Double? = null\n\n    fun call() {\n        val current = now()\n        if (firstCallAt == null) {\n            firstCallAt = current\n        }\n        fireAt = current + delayMs\n    }\n\n    fun tick() {\n        val scheduled = fireAt ?: return\n        val first = firstCallAt ?: return\n        val current = now()\n        if (current >= scheduled || current >= first + maxWaitMs) {\n            fireAt = null\n            firstCallAt = null\n            action()\n        }\n    }\n}"
+          },
+          "tests": [
+            { "input": "horloge simulée t=0, delayMs=100, maxWaitMs=150 ; call() (firstCallAt=0, fireAt=100) ; horloge → t=30 ; call() (fireAt repoussé à 130) ; horloge → t=60 ; call() (fireAt repoussé à 160) ; horloge → t=90 ; call() (fireAt repoussé à 190) ; horloge → t=100 ; tick()", "output": "action non déclenchée : t=100 est à la fois inférieur à fireAt=190 (debounce normal encore repoussé par les appels continus) et inférieur à firstCallAt+maxWaitMs=150 (limite maxWait pas encore atteinte)" },
+            { "input": "suite : horloge → t=120 ; call() (fireAt repoussé à 220, firstCallAt toujours 0) ; horloge → t=150 ; tick()", "output": "action déclenchée exactement une fois : t=150 atteint firstCallAt+maxWaitMs=150, même si le fireAt normal du debounce (220) est encore loin d'être atteint ; fireAt et firstCallAt sont réinitialisés, un futur call() redémarrera un nouveau cycle" }
+          ]
+        }
+      ]
     },
     {
       "id": "thread-safe-counter",
