@@ -806,7 +806,62 @@
       "fullDescription": "Détecter des anagrammes ou regrouper des mots par signature en comptant l'occurrence de chaque caractère dans une hash map, puis en comparant ces signatures entre elles — une alternative en O(n) au tri des caractères de chaque mot.",
       "ios": "Un utilitaire générique de traitement de texte en Swift, indépendant de toute UI (SwiftUI ou autre).",
       "android": "Le même algorithme, écrit en Kotlin, tout aussi indépendant du SDK Android.",
-      "keywords": ["anagram", "frequency map", "character count", "hash map", "sorting"]
+      "keywords": ["anagram", "frequency map", "character count", "hash map", "sorting"],
+      "docUrl": "https://en.wikipedia.org/wiki/Anagram",
+      "practiceUrl": "https://leetcode.com/problems/group-anagrams/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Détection d'anagramme",
+          "statement": "Étant donné deux chaînes a et b, déterminer si elles sont des anagrammes l'une de l'autre, c'est-à-dire si elles contiennent exactement les mêmes caractères avec les mêmes fréquences (l'ordre n'a pas d'importance). Deux chaînes de longueurs différentes ne peuvent jamais être des anagrammes.",
+          "swift": {
+            "signature": "func isAnagram(_ a: String, _ b: String) -> Bool { }",
+            "solution": "func isAnagram(_ a: String, _ b: String) -> Bool {\n    guard a.count == b.count else { return false }\n    var counts: [Character: Int] = [:]\n    for char in a {\n        counts[char, default: 0] += 1\n    }\n    for char in b {\n        guard let count = counts[char], count > 0 else { return false }\n        counts[char] = count - 1\n    }\n    return true\n}"
+          },
+          "kotlin": {
+            "signature": "fun isAnagram(a: String, b: String): Boolean { }",
+            "solution": "fun isAnagram(a: String, b: String): Boolean {\n    if (a.length != b.length) return false\n    val counts = HashMap<Char, Int>()\n    for (c in a) {\n        counts[c] = (counts[c] ?: 0) + 1\n    }\n    for (c in b) {\n        val count = counts[c] ?: return false\n        if (count == 0) return false\n        counts[c] = count - 1\n    }\n    return true\n}"
+          },
+          "tests": [
+            { "input": "isAnagram(\"chien\", \"niche\")", "output": "true (mêmes lettres, mêmes fréquences, ordre différent)" },
+            { "input": "isAnagram(\"chat\", \"chien\")", "output": "false (longueurs différentes, donc pas anagrammes)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Regroupement d'anagrammes",
+          "statement": "Étant donné une liste de mots composés de lettres minuscules non accentuées (a-z), regrouper les mots qui sont des anagrammes les uns des autres. Deux mots appartiennent au même groupe si et seulement si leurs tables de fréquence de caractères sont identiques. L'ordre des groupes renvoyés, et l'ordre des mots à l'intérieur d'un groupe, n'ont pas d'importance.",
+          "swift": {
+            "signature": "func groupAnagrams(_ words: [String]) -> [[String]] { }",
+            "solution": "func groupAnagrams(_ words: [String]) -> [[String]] {\n    var groups: [String: [String]] = [:]\n    for word in words {\n        let key = frequencySignature(word)\n        groups[key, default: []].append(word)\n    }\n    return Array(groups.values)\n}\n\nprivate func frequencySignature(_ word: String) -> String {\n    var counts = [Int](repeating: 0, count: 26)\n    let base = Character(\"a\").asciiValue!\n    for char in word {\n        if let value = char.asciiValue, value >= base, value < base + 26 {\n            counts[Int(value - base)] += 1\n        }\n    }\n    return counts.map(String.init).joined(separator: \",\")\n}"
+          },
+          "kotlin": {
+            "signature": "fun groupAnagrams(words: List<String>): List<List<String>> { }",
+            "solution": "fun groupAnagrams(words: List<String>): List<List<String>> {\n    val groups = HashMap<String, MutableList<String>>()\n    for (word in words) {\n        val key = frequencySignature(word)\n        groups.getOrPut(key) { mutableListOf() }.add(word)\n    }\n    return groups.values.toList()\n}\n\nprivate fun frequencySignature(word: String): String {\n    val counts = IntArray(26)\n    for (c in word) {\n        val index = c - 'a'\n        if (index in 0..25) counts[index]++\n    }\n    return counts.joinToString(\",\")\n}"
+          },
+          "tests": [
+            { "input": "groupAnagrams([\"eat\", \"tea\", \"tan\", \"ate\", \"nat\", \"bat\"])", "output": "3 groupes : un contenant eat, tea et ate ; un contenant tan et nat ; un contenant seulement bat" },
+            { "input": "groupAnagrams([\"abc\", \"bca\", \"xyz\"])", "output": "2 groupes : un contenant abc et bca ; un contenant seulement xyz" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Toutes les anagrammes d'un motif dans un texte",
+          "statement": "Étant donné un texte text et un motif pattern (lettres minuscules non accentuées), trouver tous les indices de départ dans text où la sous-chaîne de longueur len(pattern) est une anagramme exacte de pattern (mêmes caractères, avec les mêmes fréquences, y compris les répétitions). Utiliser une fenêtre glissante de taille fixe : maintenir une table de fréquences de la fenêtre courante et la comparer à celle de pattern, en mettant à jour les compteurs en O(1) à chaque décalage plutôt qu'en recomptant toute la fenêtre à chaque étape.",
+          "swift": {
+            "signature": "func findAnagramStartIndices(_ text: String, _ pattern: String) -> [Int] { }",
+            "solution": "func findAnagramStartIndices(_ text: String, _ pattern: String) -> [Int] {\n    let textChars = Array(text)\n    let patternChars = Array(pattern)\n    let windowSize = patternChars.count\n    guard windowSize > 0, textChars.count >= windowSize else { return [] }\n\n    var patternCounts: [Character: Int] = [:]\n    for char in patternChars {\n        patternCounts[char, default: 0] += 1\n    }\n\n    var windowCounts: [Character: Int] = [:]\n    var results: [Int] = []\n\n    for i in 0..<textChars.count {\n        let incoming = textChars[i]\n        windowCounts[incoming, default: 0] += 1\n\n        let outgoingIndex = i - windowSize\n        if outgoingIndex >= 0 {\n            let outgoing = textChars[outgoingIndex]\n            windowCounts[outgoing]! -= 1\n            if windowCounts[outgoing] == 0 {\n                windowCounts.removeValue(forKey: outgoing)\n            }\n        }\n\n        if i >= windowSize - 1, windowCounts == patternCounts {\n            results.append(i - windowSize + 1)\n        }\n    }\n    return results\n}"
+          },
+          "kotlin": {
+            "signature": "fun findAnagramStartIndices(text: String, pattern: String): List<Int> { }",
+            "solution": "fun findAnagramStartIndices(text: String, pattern: String): List<Int> {\n    val windowSize = pattern.length\n    if (windowSize == 0 || text.length < windowSize) return emptyList()\n\n    val patternCounts = HashMap<Char, Int>()\n    for (c in pattern) {\n        patternCounts[c] = (patternCounts[c] ?: 0) + 1\n    }\n\n    val windowCounts = HashMap<Char, Int>()\n    val results = mutableListOf<Int>()\n\n    for (i in text.indices) {\n        val incoming = text[i]\n        windowCounts[incoming] = (windowCounts[incoming] ?: 0) + 1\n\n        val outgoingIndex = i - windowSize\n        if (outgoingIndex >= 0) {\n            val outgoing = text[outgoingIndex]\n            val newCount = windowCounts.getValue(outgoing) - 1\n            if (newCount == 0) {\n                windowCounts.remove(outgoing)\n            } else {\n                windowCounts[outgoing] = newCount\n            }\n        }\n\n        if (i >= windowSize - 1 && windowCounts == patternCounts) {\n            results.add(i - windowSize + 1)\n        }\n    }\n    return results\n}"
+          },
+          "tests": [
+            { "input": "findAnagramStartIndices(\"cbaebabacd\", \"abc\")", "output": "[0, 6] (fenêtres \"cba\" à l'indice 0 et \"bac\" à l'indice 6, toutes deux anagrammes de \"abc\")" },
+            { "input": "findAnagramStartIndices(\"abcab\", \"aab\")", "output": "[] (aucune fenêtre de taille 3 n'a exactement deux 'a' et un 'b' : \"abc\", \"bca\" et \"cab\" contiennent un 'c' et une seule occurrence de 'a')" }
+          ]
+        }
+      ]
     },
     {
       "id": "list-diffing",
