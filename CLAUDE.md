@@ -23,8 +23,8 @@ python -m http.server 8000
 
 - **`index.html`** — Page structure: the wheel canvas, spin button, and the result panel markup.
 - **`style.css`** — Casino-style visual design, layout, and responsive rules (the iOS/Android result cards stack vertically below 600px).
-- **`wheel.js`** — All game logic: fetches `algorithms.json`, draws the wheel on a `<canvas>` (Canvas 2D API), computes the winning rotation, animates the 3-second decelerating spin (`requestAnimationFrame` + `easeOutCubic`), and renders the result panel.
-- **`algorithms.json`** — Data store for the 17 algorithms. Each entry: `id`, `name`, `category` (`structure` | `algorithme` | `ios-specifique`, informative only), `summary`, `fullDescription`, `ios`, `android`.
+- **`wheel.js`** — All game logic: fetches `algorithms.json`, draws the wheel on a `<canvas>` (Canvas 2D API), computes the winning rotation, animates the 3-second decelerating spin (`requestAnimationFrame` + `easeOutCubic`), and renders the result panel including the exercise accordion (Swift/Kotlin tabs, solution reveal).
+- **`algorithms.json`** — Data store for the 17 algorithms. Each entry: `id`, `name`, `category` (`structure` | `algorithme` | `ios-specifique`, informative only), `summary`, `fullDescription`, `ios`, `android`, `keywords`, `docUrl`, `practiceUrl` (optional), and `exercises` (3 levels — facile/moyen/difficile — each with a `statement` and per-language `swift`/`kotlin` objects containing `signature`, `solution`, and `tests`).
 
 **Data flow:** Page load → fetch `algorithms.json` → draw the static wheel → user clicks "Lancer la roue" → uniform random pick (with replacement) → 3s decelerating rotation animation → result panel shows the winning algorithm's description and iOS/Android detail.
 
