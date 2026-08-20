@@ -18,7 +18,62 @@
       "fullDescription": "Cache à éviction LRU (Least Recently Used) : une hash map donne l'accès O(1) à chaque nœud, une liste doublement chaînée maintient l'ordre d'utilisation pour déplacer un élément accédé en tête et évincer la queue en O(1) quand la capacité est dépassée. C'est une structure incontournable car elle correspond directement à un cache d'images.",
       "ios": "NSCache applique une éviction automatique sous pression mémoire, mais Apple ne documente pas d'ordre LRU strict garanti ; on la réimplémente à la main quand un ordre LRU précis est requis, par exemple un cache d'images à capacité fixe.",
       "android": "LruCache<K, V> de androidx.collection l'implémente nativement ; Coil s'appuie dessus pour son cache mémoire d'images, exposé côté Compose via AsyncImage.",
-      "keywords": ["LRU", "hash map + linked list", "NSCache", "LruCache", "eviction policy"]
+      "keywords": ["LRU", "hash map + linked list", "NSCache", "LruCache", "eviction policy"],
+      "docUrl": "https://en.wikipedia.org/wiki/Cache_replacement_policies",
+      "practiceUrl": "https://leetcode.com/problems/lru-cache/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Cache LRU basique",
+          "statement": "Implémenter une cache à capacité fixe avec deux opérations : get(key) qui renvoie la valeur associée (ou une absence), et put(key, value) qui insère ou met à jour une valeur. Quand la capacité est dépassée, évincer l'élément le moins récemment utilisé — un accès en lecture OU en écriture sur une clé la rend « récemment utilisée ».",
+          "swift": {
+            "signature": "class LRUCache {\n    init(capacity: Int) { }\n    func get(_ key: Int) -> Int? { }\n    func put(_ key: Int, _ value: Int) { }\n}",
+            "solution": "class LRUCache {\n    private let capacity: Int\n    private var store: [Int: Int] = [:]\n    private var order: [Int] = [] // du moins récent au plus récent\n\n    init(capacity: Int) {\n        self.capacity = capacity\n    }\n\n    func get(_ key: Int) -> Int? {\n        guard let value = store[key] else { return nil }\n        touch(key)\n        return value\n    }\n\n    func put(_ key: Int, _ value: Int) {\n        if store[key] == nil, store.count >= capacity {\n            let oldest = order.removeFirst()\n            store.removeValue(forKey: oldest)\n        }\n        store[key] = value\n        touch(key)\n    }\n\n    private func touch(_ key: Int) {\n        order.removeAll { $0 == key }\n        order.append(key)\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class LRUCache(private val capacity: Int) {\n    fun get(key: Int): Int? { }\n    fun put(key: Int, value: Int) { }\n}",
+            "solution": "class LRUCache(private val capacity: Int) {\n    private val store = HashMap<Int, Int>()\n    private val order = mutableListOf<Int>() // du moins récent au plus récent\n\n    fun get(key: Int): Int? {\n        val value = store[key] ?: return null\n        touch(key)\n        return value\n    }\n\n    fun put(key: Int, value: Int) {\n        if (!store.containsKey(key) && store.size >= capacity) {\n            val oldest = order.removeAt(0)\n            store.remove(oldest)\n        }\n        store[key] = value\n        touch(key)\n    }\n\n    private fun touch(key: Int) {\n        order.remove(key)\n        order.add(key)\n    }\n}"
+          },
+          "tests": [
+            { "input": "capacity=2; put(1,10); put(2,20); get(1)", "output": "10 (et la clé 1 redevient la plus récente)" },
+            { "input": "suite: put(3,30) puis get(2)", "output": "absent (clé 2 évincée, c'était la moins récente)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Cache LRU redimensionnable",
+          "statement": "Étendre la cache LRU pour supporter resize(newCapacity), qui change la capacité à chaud. Si la nouvelle capacité est inférieure au nombre d'éléments actuellement en cache, évincer immédiatement les éléments les moins récemment utilisés jusqu'à revenir sous la nouvelle capacité.",
+          "swift": {
+            "signature": "class ResizableLRUCache {\n    init(capacity: Int) { }\n    func get(_ key: Int) -> Int? { }\n    func put(_ key: Int, _ value: Int) { }\n    func resize(_ newCapacity: Int) { }\n}",
+            "solution": "class ResizableLRUCache {\n    private var capacity: Int\n    private var store: [Int: Int] = [:]\n    private var order: [Int] = []\n\n    init(capacity: Int) {\n        self.capacity = capacity\n    }\n\n    func get(_ key: Int) -> Int? {\n        guard let value = store[key] else { return nil }\n        touch(key)\n        return value\n    }\n\n    func put(_ key: Int, _ value: Int) {\n        if store[key] == nil, store.count >= capacity {\n            evictOldest()\n        }\n        store[key] = value\n        touch(key)\n    }\n\n    func resize(_ newCapacity: Int) {\n        capacity = newCapacity\n        while store.count > capacity {\n            evictOldest()\n        }\n    }\n\n    private func evictOldest() {\n        guard !order.isEmpty else { return }\n        let oldest = order.removeFirst()\n        store.removeValue(forKey: oldest)\n    }\n\n    private func touch(_ key: Int) {\n        order.removeAll { $0 == key }\n        order.append(key)\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class ResizableLRUCache(private var capacity: Int) {\n    fun get(key: Int): Int? { }\n    fun put(key: Int, value: Int) { }\n    fun resize(newCapacity: Int) { }\n}",
+            "solution": "class ResizableLRUCache(private var capacity: Int) {\n    private val store = HashMap<Int, Int>()\n    private val order = mutableListOf<Int>()\n\n    fun get(key: Int): Int? {\n        val value = store[key] ?: return null\n        touch(key)\n        return value\n    }\n\n    fun put(key: Int, value: Int) {\n        if (!store.containsKey(key) && store.size >= capacity) {\n            evictOldest()\n        }\n        store[key] = value\n        touch(key)\n    }\n\n    fun resize(newCapacity: Int) {\n        capacity = newCapacity\n        while (store.size > capacity) {\n            evictOldest()\n        }\n    }\n\n    private fun evictOldest() {\n        if (order.isEmpty()) return\n        val oldest = order.removeAt(0)\n        store.remove(oldest)\n    }\n\n    private fun touch(key: Int) {\n        order.remove(key)\n        order.add(key)\n    }\n}"
+          },
+          "tests": [
+            { "input": "capacity=3; put(1,1); put(2,2); put(3,3); resize(1)", "output": "seule la clé 3 (la plus récente) reste en cache" },
+            { "input": "capacity=2; put(1,1); get(1); put(2,2); resize(5); put(3,3)", "output": "aucune éviction, les 3 clés sont présentes" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Cache LRU avec expiration (TTL)",
+          "statement": "Chaque entrée a une durée de vie (TTL en secondes) au-delà de laquelle elle est considérée absente, même si la capacité n'est pas dépassée et même si l'entrée n'a pas été évincée par LRU. put(key, value, ttlSeconds) associe un TTL à l'entrée ; get(key) doit renvoyer une absence si l'entrée a expiré (et la retirer du cache au passage), sinon se comporter comme un accès LRU normal. Pour rester testable, l'horloge est injectée plutôt que lue depuis l'horloge système.",
+          "swift": {
+            "signature": "class ExpiringLRUCache {\n    init(capacity: Int, now: @escaping () -> Double) { }\n    func get(_ key: Int) -> Int? { }\n    func put(_ key: Int, _ value: Int, ttlSeconds: Double) { }\n}",
+            "solution": "class ExpiringLRUCache {\n    private struct Entry { var value: Int; var expiresAt: Double }\n    private let capacity: Int\n    private let now: () -> Double\n    private var store: [Int: Entry] = [:]\n    private var order: [Int] = []\n\n    init(capacity: Int, now: @escaping () -> Double) {\n        self.capacity = capacity\n        self.now = now\n    }\n\n    func get(_ key: Int) -> Int? {\n        guard let entry = store[key] else { return nil }\n        if entry.expiresAt <= now() {\n            store.removeValue(forKey: key)\n            order.removeAll { $0 == key }\n            return nil\n        }\n        touch(key)\n        return entry.value\n    }\n\n    func put(_ key: Int, _ value: Int, ttlSeconds: Double) {\n        if store[key] == nil, store.count >= capacity {\n            let oldest = order.removeFirst()\n            store.removeValue(forKey: oldest)\n        }\n        store[key] = Entry(value: value, expiresAt: now() + ttlSeconds)\n        touch(key)\n    }\n\n    private func touch(_ key: Int) {\n        order.removeAll { $0 == key }\n        order.append(key)\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class ExpiringLRUCache(\n    private val capacity: Int,\n    private val now: () -> Long\n) {\n    fun get(key: Int): Int? { }\n    fun put(key: Int, value: Int, ttlSeconds: Long) { }\n}",
+            "solution": "class ExpiringLRUCache(\n    private val capacity: Int,\n    private val now: () -> Long\n) {\n    private data class Entry(val value: Int, val expiresAt: Long)\n    private val store = HashMap<Int, Entry>()\n    private val order = mutableListOf<Int>()\n\n    fun get(key: Int): Int? {\n        val entry = store[key] ?: return null\n        if (entry.expiresAt <= now()) {\n            store.remove(key)\n            order.remove(key)\n            return null\n        }\n        touch(key)\n        return entry.value\n    }\n\n    fun put(key: Int, value: Int, ttlSeconds: Long) {\n        if (!store.containsKey(key) && store.size >= capacity) {\n            val oldest = order.removeAt(0)\n            store.remove(oldest)\n        }\n        store[key] = Entry(value, now() + ttlSeconds)\n        touch(key)\n    }\n\n    private fun touch(key: Int) {\n        order.remove(key)\n        order.add(key)\n    }\n}"
+          },
+          "tests": [
+            { "input": "horloge simulée t=0 ; put(1, 100, ttlSeconds=10) ; horloge → t=5 ; get(1)", "output": "100 (pas encore expiré)" },
+            { "input": "suite : horloge → t=11 ; get(1)", "output": "absent (expiré, même si jamais évincé par LRU)" }
+          ]
+        }
+      ]
     },
     {
       "id": "ring-buffer",
