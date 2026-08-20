@@ -935,7 +935,61 @@
       "fullDescription": "Charger davantage de données quand l'utilisateur approche de la fin d'une liste, en définissant un seuil de prefetch avant le dernier élément visible, en annulant les requêtes devenues obsolètes si l'utilisateur scrolle vite, et en garantissant qu'une réponse tardive ne vienne jamais s'afficher sur la mauvaise ligne (à cause d'une cellule réutilisée ou d'une vue dont l'identité a changé).",
       "ios": "En SwiftUI, le modificateur .task sur chaque ligne d'une List lance le chargement et est automatiquement annulé dès que la ligne disparaît de l'écran, évitant qu'une réponse tardive n'écrase le contenu affiché ; .onAppear sur les dernières lignes déclenche le chargement de la page suivante au bon seuil de prefetch.",
       "android": "Paging3 gère nativement le seuil de prefetch et l'invalidation via LazyPagingItems dans un LazyColumn ; en implémentation manuelle, on observe LazyListState.firstVisibleItemIndex via derivedStateOf pour déclencher le chargement de la page suivante, et un LaunchedEffect(key) annule automatiquement la requête précédente à chaque recomposition.",
-      "keywords": ["infinite scroll", "pagination", "prefetch threshold", ".task cancellation", "List lazy loading"]
+      "keywords": ["infinite scroll", "pagination", "prefetch threshold", ".task cancellation", "List lazy loading"],
+      "docUrl": "https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Seuil de prefetch",
+          "statement": "Écrire shouldLoadNextPage(visibleIndex, totalLoaded, prefetchThreshold), qui indique si la ligne actuellement visible est assez proche de la fin des éléments déjà chargés pour déclencher le chargement de la page suivante. Le chargement doit démarrer dès qu'il reste au plus prefetchThreshold éléments après visibleIndex (index 0-based).",
+          "swift": {
+            "signature": "func shouldLoadNextPage(visibleIndex: Int, totalLoaded: Int, prefetchThreshold: Int) -> Bool { }",
+            "solution": "func shouldLoadNextPage(visibleIndex: Int, totalLoaded: Int, prefetchThreshold: Int) -> Bool {\n    return totalLoaded - visibleIndex <= prefetchThreshold\n}"
+          },
+          "kotlin": {
+            "signature": "fun shouldLoadNextPage(visibleIndex: Int, totalLoaded: Int, prefetchThreshold: Int): Boolean { }",
+            "solution": "fun shouldLoadNextPage(visibleIndex: Int, totalLoaded: Int, prefetchThreshold: Int): Boolean {\n    return totalLoaded - visibleIndex <= prefetchThreshold\n}"
+          },
+          "tests": [
+            { "input": "totalLoaded=20, prefetchThreshold=5, visibleIndex=14", "output": "false (il reste 6 éléments après l'index visible, au-dessus du seuil de 5)" },
+            { "input": "mêmes paramètres, visibleIndex=15", "output": "true (il ne reste que 5 éléments après l'index visible, au niveau du seuil de prefetch)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "PageLoader séquentiel",
+          "statement": "Implémenter un PageLoader qui charge les pages les unes après les autres via une fonction fetchPage(pageIndex, completion) injectée, simulant un appel réseau asynchrone (completion est appelée plus tard avec les éléments de la page). loadNextPage() déclenche le chargement de la page suivante et, une fois la completion appelée, ajoute son contenu à items. Si un chargement est déjà en cours (sa completion n'a pas encore été appelée), un nouvel appel à loadNextPage() est ignoré — aucun chargement ne doit se superposer.",
+          "swift": {
+            "signature": "class PageLoader {\n    init(fetchPage: @escaping (Int, @escaping ([Int]) -> Void) -> Void) { }\n    private(set) var items: [Int] = []\n    func loadNextPage() { }\n}",
+            "solution": "class PageLoader {\n    private let fetchPage: (Int, @escaping ([Int]) -> Void) -> Void\n    private(set) var items: [Int] = []\n    private var nextPageIndex = 0\n    private var isLoading = false\n\n    init(fetchPage: @escaping (Int, @escaping ([Int]) -> Void) -> Void) {\n        self.fetchPage = fetchPage\n    }\n\n    func loadNextPage() {\n        guard !isLoading else { return }\n        isLoading = true\n        let pageIndex = nextPageIndex\n        fetchPage(pageIndex) { [weak self] pageItems in\n            guard let self = self else { return }\n            self.items.append(contentsOf: pageItems)\n            self.nextPageIndex += 1\n            self.isLoading = false\n        }\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class PageLoader(private val fetchPage: (Int, (List<Int>) -> Unit) -> Unit) {\n    var items: List<Int> = emptyList()\n        private set\n    fun loadNextPage() { }\n}",
+            "solution": "class PageLoader(private val fetchPage: (Int, (List<Int>) -> Unit) -> Unit) {\n    private val _items = mutableListOf<Int>()\n    val items: List<Int> get() = _items\n    private var nextPageIndex = 0\n    private var isLoading = false\n\n    fun loadNextPage() {\n        if (isLoading) return\n        isLoading = true\n        val pageIndex = nextPageIndex\n        fetchPage(pageIndex) { pageItems ->\n            _items.addAll(pageItems)\n            nextPageIndex += 1\n            isLoading = false\n        }\n    }\n}"
+          },
+          "tests": [
+            { "input": "loader.loadNextPage() (fetchPage appelée pour la page 0, non résolue) puis loader.loadNextPage() à nouveau avant toute résolution", "output": "fetchPage n'a été appelée qu'une seule fois (page 0) ; le deuxième appel est ignoré car un chargement est déjà en vol" },
+            { "input": "suite : la fetch de la page 0 se résout avec [1,2,3] ; puis loader.loadNextPage() (fetchPage appelée pour la page 1) qui se résout avec [4,5]", "output": "items == [1,2,3,4,5]" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "PageLoader avec annulation au scroll rapide",
+          "statement": "Étendre le PageLoader avec scrollTo(page), qui saute directement à une autre page (par exemple après un scroll rapide vers une position éloignée). scrollTo(page) vide items et démarre le chargement de la page donnée, invalidant tout chargement en cours pour une page qui n'est plus nécessaire : si une fetchPage lancée avant le scrollTo se résout après coup, son résultat doit être ignoré et ne jamais être ajouté à items, même si sa completion est appelée après celle déclenchée par scrollTo.",
+          "swift": {
+            "signature": "class CancellingPageLoader {\n    init(fetchPage: @escaping (Int, @escaping ([Int]) -> Void) -> Void) { }\n    private(set) var items: [Int] = []\n    func loadNextPage() { }\n    func scrollTo(page: Int) { }\n}",
+            "solution": "class CancellingPageLoader {\n    private let fetchPage: (Int, @escaping ([Int]) -> Void) -> Void\n    private(set) var items: [Int] = []\n    private var nextPageIndex = 0\n    private var isLoading = false\n    private var currentRequestId = 0\n\n    init(fetchPage: @escaping (Int, @escaping ([Int]) -> Void) -> Void) {\n        self.fetchPage = fetchPage\n    }\n\n    func loadNextPage() {\n        guard !isLoading else { return }\n        startLoad(page: nextPageIndex)\n    }\n\n    func scrollTo(page: Int) {\n        items = []\n        nextPageIndex = page\n        startLoad(page: page)\n    }\n\n    private func startLoad(page: Int) {\n        isLoading = true\n        currentRequestId += 1\n        let requestId = currentRequestId\n        fetchPage(page) { [weak self] pageItems in\n            guard let self = self, requestId == self.currentRequestId else { return }\n            self.items.append(contentsOf: pageItems)\n            self.nextPageIndex = page + 1\n            self.isLoading = false\n        }\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class CancellingPageLoader(private val fetchPage: (Int, (List<Int>) -> Unit) -> Unit) {\n    var items: List<Int> = emptyList()\n        private set\n    fun loadNextPage() { }\n    fun scrollTo(page: Int) { }\n}",
+            "solution": "class CancellingPageLoader(private val fetchPage: (Int, (List<Int>) -> Unit) -> Unit) {\n    private val _items = mutableListOf<Int>()\n    val items: List<Int> get() = _items\n    private var nextPageIndex = 0\n    private var isLoading = false\n    private var currentRequestId = 0\n\n    fun loadNextPage() {\n        if (isLoading) return\n        startLoad(nextPageIndex)\n    }\n\n    fun scrollTo(page: Int) {\n        _items.clear()\n        nextPageIndex = page\n        startLoad(page)\n    }\n\n    private fun startLoad(page: Int) {\n        isLoading = true\n        currentRequestId += 1\n        val requestId = currentRequestId\n        fetchPage(page) { pageItems ->\n            if (requestId == currentRequestId) {\n                _items.addAll(pageItems)\n                nextPageIndex = page + 1\n                isLoading = false\n            }\n        }\n    }\n}"
+          },
+          "tests": [
+            { "input": "loader.loadNextPage() démarre le chargement de la page 0 (non résolu) ; loader.scrollTo(3) démarre le chargement de la page 3 et rend la page 0 obsolète ; la fetch de la page 3 se résout d'abord avec [30,31] ; puis, tardivement, la fetch de la page 0 se résout avec [0,1]", "output": "items == [30,31] (le résultat tardif de la page 0 est ignoré car scrollTo l'a rendue obsolète)" },
+            { "input": "suite : loader.loadNextPage() démarre le chargement de la page 4, qui se résout avec [40,41]", "output": "items == [30,31,40,41] (le chargement séquentiel reprend normalement après l'invalidation)" }
+          ]
+        }
+      ]
     },
     {
       "id": "image-cache",
