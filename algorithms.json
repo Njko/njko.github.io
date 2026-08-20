@@ -221,7 +221,62 @@
       "fullDescription": "Structure LIFO (dernier entré, premier sorti) implémentée sur un tableau dynamique pour push/pop en O(1) amorti. La question piège classique porte sur le mécanisme de Copy-on-Write (COW) : un type valeur adossé à un tableau semble copié à chaque affectation, mais le buffer mémoire n'est réellement dupliqué qu'au premier accès en écriture après le partage — d'où les bonnes performances malgré des copies en apparence coûteuses.",
       "ios": "En Swift, Array est un struct dont la bibliothèque standard implémente le Copy-on-Write (via isKnownUniquelyReferenced), donc une copie ne duplique le buffer que si l'un des deux exemplaires est mutable ensuite ; ce COW n'est pas automatique pour un type maison enveloppant une classe, il faut l'implémenter soi-même de la même façon.",
       "android": "Kotlin n'a pas de COW natif sur ses collections mutables ; on discute plutôt de l'immutabilité par défaut des List/data class et des collections persistantes (kotlinx.collections.immutable) comme équivalent conceptuel.",
-      "keywords": ["LIFO", "push/pop", "Copy-on-Write", "COW", "value type vs reference type"]
+      "keywords": ["LIFO", "push/pop", "Copy-on-Write", "COW", "value type vs reference type"],
+      "docUrl": "https://en.wikipedia.org/wiki/Stack_(abstract_data_type)",
+      "practiceUrl": "https://leetcode.com/problems/min-stack/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Pile LIFO basique",
+          "statement": "Implémenter une pile avec push(value), qui ajoute un élément au sommet, pop(), qui retire et renvoie l'élément au sommet (ou une absence si la pile est vide), peek(), qui renvoie l'élément au sommet sans le retirer (ou une absence si la pile est vide), et isEmpty(), qui indique si la pile est vide.",
+          "swift": {
+            "signature": "class Stack {\n    func push(_ value: Int) { }\n    func pop() -> Int? { }\n    func peek() -> Int? { }\n    func isEmpty() -> Bool { }\n}",
+            "solution": "class Stack {\n    private var items: [Int] = []\n\n    func push(_ value: Int) {\n        items.append(value)\n    }\n\n    func pop() -> Int? {\n        return items.popLast()\n    }\n\n    func peek() -> Int? {\n        return items.last\n    }\n\n    func isEmpty() -> Bool {\n        return items.isEmpty\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class Stack {\n    fun push(value: Int) { }\n    fun pop(): Int? { }\n    fun peek(): Int? { }\n    fun isEmpty(): Boolean { }\n}",
+            "solution": "class Stack {\n    private val items = mutableListOf<Int>()\n\n    fun push(value: Int) {\n        items.add(value)\n    }\n\n    fun pop(): Int? {\n        return if (items.isEmpty()) null else items.removeAt(items.size - 1)\n    }\n\n    fun peek(): Int? {\n        return items.lastOrNull()\n    }\n\n    fun isEmpty(): Boolean {\n        return items.isEmpty()\n    }\n}"
+          },
+          "tests": [
+            { "input": "push(1); push(2); push(3); pop()", "output": "3 (dernier empilé, la pile devient [1, 2])" },
+            { "input": "suite: peek() puis isEmpty()", "output": "peek() renvoie 2 (sommet actuel, non retiré) ; isEmpty() renvoie false (2 éléments restants)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "MinStack : minimum courant en O(1)",
+          "statement": "Étendre la pile avec getMin(), qui renvoie le minimum actuellement présent dans la pile en O(1) (ou une absence si la pile est vide), en plus de push(value), pop() et top() (qui renvoie l'élément au sommet sans le retirer). getMin() doit rester correct après n'importe quelle séquence de push/pop, y compris quand le minimum courant est dépilé.",
+          "swift": {
+            "signature": "class MinStack {\n    func push(_ value: Int) { }\n    func pop() { }\n    func top() -> Int? { }\n    func getMin() -> Int? { }\n}",
+            "solution": "class MinStack {\n    private var items: [Int] = []\n    private var minStack: [Int] = []\n\n    func push(_ value: Int) {\n        items.append(value)\n        if let currentMin = minStack.last {\n            minStack.append(Swift.min(value, currentMin))\n        } else {\n            minStack.append(value)\n        }\n    }\n\n    func pop() {\n        guard !items.isEmpty else { return }\n        items.removeLast()\n        minStack.removeLast()\n    }\n\n    func top() -> Int? {\n        return items.last\n    }\n\n    func getMin() -> Int? {\n        return minStack.last\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class MinStack {\n    fun push(value: Int) { }\n    fun pop() { }\n    fun top(): Int? { }\n    fun getMin(): Int? { }\n}",
+            "solution": "class MinStack {\n    private val items = mutableListOf<Int>()\n    private val minStack = mutableListOf<Int>()\n\n    fun push(value: Int) {\n        items.add(value)\n        val currentMin = minStack.lastOrNull()\n        minStack.add(if (currentMin == null) value else minOf(value, currentMin))\n    }\n\n    fun pop() {\n        if (items.isEmpty()) return\n        items.removeAt(items.size - 1)\n        minStack.removeAt(minStack.size - 1)\n    }\n\n    fun top(): Int? {\n        return items.lastOrNull()\n    }\n\n    fun getMin(): Int? {\n        return minStack.lastOrNull()\n    }\n}"
+          },
+          "tests": [
+            { "input": "push(5); push(2); push(7); getMin()", "output": "2 (minimum courant parmi [5, 2, 7])" },
+            { "input": "suite: pop() (retire 7) puis pop() (retire 2, l'ancien minimum) puis getMin()", "output": "5 (le minimum est recalculé automatiquement, il ne reste que 5 dans la pile)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "File FIFO adossée à deux piles",
+          "statement": "Implémenter une file (FIFO) en n'utilisant que deux piles comme structures internes (push/pop/peek/isEmpty sur chacune, aucun tableau ou liste chaînée manipulé directement par index). enqueue(value) ajoute un élément en fin de file, dequeue() retire et renvoie l'élément en tête (ou une absence si la file est vide). Le transfert d'éléments d'une pile à l'autre ne doit avoir lieu que lorsque c'est nécessaire (pile de sortie vide), afin de garder un coût amorti O(1) par opération.",
+          "swift": {
+            "signature": "class QueueFromTwoStacks {\n    func enqueue(_ value: Int) { }\n    func dequeue() -> Int? { }\n}",
+            "solution": "class QueueFromTwoStacks {\n    private var inStack: [Int] = []\n    private var outStack: [Int] = []\n\n    func enqueue(_ value: Int) {\n        inStack.append(value)\n    }\n\n    func dequeue() -> Int? {\n        if outStack.isEmpty {\n            while let value = inStack.popLast() {\n                outStack.append(value)\n            }\n        }\n        return outStack.popLast()\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class QueueFromTwoStacks {\n    fun enqueue(value: Int) { }\n    fun dequeue(): Int? { }\n}",
+            "solution": "class QueueFromTwoStacks {\n    private val inStack = mutableListOf<Int>()\n    private val outStack = mutableListOf<Int>()\n\n    fun enqueue(value: Int) {\n        inStack.add(value)\n    }\n\n    fun dequeue(): Int? {\n        if (outStack.isEmpty()) {\n            while (inStack.isNotEmpty()) {\n                outStack.add(inStack.removeAt(inStack.size - 1))\n            }\n        }\n        return if (outStack.isEmpty()) null else outStack.removeAt(outStack.size - 1)\n    }\n}"
+          },
+          "tests": [
+            { "input": "enqueue(1); enqueue(2); enqueue(3); dequeue()", "output": "1 (premier inséré, ressort en premier malgré l'implémentation par piles ; outStack devient [3, 2])" },
+            { "input": "suite: enqueue(4) puis dequeue() deux fois", "output": "2 puis 3 (l'ordre FIFO [2, 3, 4] est respecté ; enqueue(4) va dans inStack, sans perturber outStack tant qu'il n'est pas vide)" }
+          ]
+        }
+      ]
     },
     {
       "id": "linked-list",
