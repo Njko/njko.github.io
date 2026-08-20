@@ -873,7 +873,6 @@
       "android": "En Compose, LazyColumn/LazyRow avec items(list, key = { it.id }) diffe automatiquement la liste à partir d'une clé stable — Compose ne recompose que les éléments dont la clé ou le contenu a changé, sans code de diff à écrire soi-même.",
       "keywords": ["list diffing", "Myers diff", "ForEach", "Identifiable", "stable id"],
       "docUrl": "https://en.wikipedia.org/wiki/Diff#Algorithms",
-      "practiceUrl": "https://leetcode.com/problems/delete-operation-for-two-strings/",
       "exercises": [
         {
           "level": "facile",
