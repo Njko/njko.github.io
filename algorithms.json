@@ -8,7 +8,62 @@
       "fullDescription": "Structure FIFO où l'élément inséré en premier est celui qui sort en premier. S'implémente efficacement avec un buffer circulaire (deux index tête/queue sur un tableau) ou une liste chaînée à deux extrémités, pour garder l'ajout et le retrait en O(1).",
       "ios": "Un tableau utilisé comme buffer circulaire, ou une DispatchQueue série (FIFO par construction) pour une file de tâches ; NSOperationQueue s'en rapproche mais exécute plusieurs opérations en concurrence par défaut — il faut maxConcurrentOperationCount = 1 pour garantir un traitement strictement séquentiel.",
       "android": "ArrayDeque en Kotlin pour une implémentation en mémoire, ou la file de tâches de WorkManager pour des files persistantes.",
-      "keywords": ["FIFO", "buffer circulaire", "ArrayDeque", "DispatchQueue série", "head/tail pointer"]
+      "keywords": ["FIFO", "buffer circulaire", "ArrayDeque", "DispatchQueue série", "head/tail pointer"],
+      "docUrl": "https://en.wikipedia.org/wiki/Queue_(abstract_data_type)",
+      "practiceUrl": "https://leetcode.com/problems/design-circular-queue/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "File FIFO à capacité fixe",
+          "statement": "Implémenter une file d'attente à capacité fixe avec un buffer circulaire (tableau + index tête/queue). enqueue(value) ajoute un élément à la fin (échoue silencieusement si la file est pleine), dequeue() retire et renvoie l'élément en tête (ou une absence si la file est vide), et isEmpty() indique si la file est vide.",
+          "swift": {
+            "signature": "class CircularQueue {\n    init(capacity: Int) { }\n    func enqueue(_ value: Int) { }\n    func dequeue() -> Int? { }\n    func isEmpty() -> Bool { }\n}",
+            "solution": "class CircularQueue {\n    private var buffer: [Int?]\n    private var head = 0\n    private var count = 0\n    private let capacity: Int\n\n    init(capacity: Int) {\n        self.capacity = capacity\n        self.buffer = Array(repeating: nil, count: capacity)\n    }\n\n    func enqueue(_ value: Int) {\n        guard count < capacity else { return }\n        let tail = (head + count) % capacity\n        buffer[tail] = value\n        count += 1\n    }\n\n    func dequeue() -> Int? {\n        guard count > 0 else { return nil }\n        let value = buffer[head]\n        buffer[head] = nil\n        head = (head + 1) % capacity\n        count -= 1\n        return value\n    }\n\n    func isEmpty() -> Bool {\n        return count == 0\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class CircularQueue(private val capacity: Int) {\n    fun enqueue(value: Int) { }\n    fun dequeue(): Int? { }\n    fun isEmpty(): Boolean { }\n}",
+            "solution": "class CircularQueue(private val capacity: Int) {\n    private val buffer = arrayOfNulls<Int>(capacity)\n    private var head = 0\n    private var count = 0\n\n    fun enqueue(value: Int) {\n        if (count >= capacity) return\n        val tail = (head + count) % capacity\n        buffer[tail] = value\n        count++\n    }\n\n    fun dequeue(): Int? {\n        if (count == 0) return null\n        val value = buffer[head]\n        buffer[head] = null\n        head = (head + 1) % capacity\n        count--\n        return value\n    }\n\n    fun isEmpty(): Boolean {\n        return count == 0\n    }\n}"
+          },
+          "tests": [
+            { "input": "capacity=3; enqueue(1); enqueue(2); enqueue(3); dequeue()", "output": "1 (premier élément inséré, la file logique devient [2, 3])" },
+            { "input": "suite: enqueue(4) (réussit, la file redevient pleine avec [2,3,4]) ; enqueue(5) ; isEmpty()", "output": "enqueue(5) est ignoré silencieusement (capacité dépassée) ; isEmpty() renvoie false (la file contient toujours 3 éléments)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "File FIFO avec peek et rejet explicite",
+          "statement": "Étendre la file circulaire avec peek(), qui renvoie l'élément en tête sans le retirer (ou une absence si la file est vide), et faire renvoyer à enqueue(value) un Bool (ou équivalent) indiquant si l'insertion a réussi, pour que l'appelant puisse détecter et gérer explicitement le cas où la file est pleine plutôt que de voir l'élément silencieusement ignoré.",
+          "swift": {
+            "signature": "class CircularQueueWithPeek {\n    init(capacity: Int) { }\n    func enqueue(_ value: Int) -> Bool { }\n    func dequeue() -> Int? { }\n    func peek() -> Int? { }\n}",
+            "solution": "class CircularQueueWithPeek {\n    private var buffer: [Int?]\n    private var head = 0\n    private var count = 0\n    private let capacity: Int\n\n    init(capacity: Int) {\n        self.capacity = capacity\n        self.buffer = Array(repeating: nil, count: capacity)\n    }\n\n    func enqueue(_ value: Int) -> Bool {\n        guard count < capacity else { return false }\n        let tail = (head + count) % capacity\n        buffer[tail] = value\n        count += 1\n        return true\n    }\n\n    func dequeue() -> Int? {\n        guard count > 0 else { return nil }\n        let value = buffer[head]\n        buffer[head] = nil\n        head = (head + 1) % capacity\n        count -= 1\n        return value\n    }\n\n    func peek() -> Int? {\n        guard count > 0 else { return nil }\n        return buffer[head]\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class CircularQueueWithPeek(private val capacity: Int) {\n    fun enqueue(value: Int): Boolean { }\n    fun dequeue(): Int? { }\n    fun peek(): Int? { }\n}",
+            "solution": "class CircularQueueWithPeek(private val capacity: Int) {\n    private val buffer = arrayOfNulls<Int>(capacity)\n    private var head = 0\n    private var count = 0\n\n    fun enqueue(value: Int): Boolean {\n        if (count >= capacity) return false\n        val tail = (head + count) % capacity\n        buffer[tail] = value\n        count++\n        return true\n    }\n\n    fun dequeue(): Int? {\n        if (count == 0) return null\n        val value = buffer[head]\n        buffer[head] = null\n        head = (head + 1) % capacity\n        count--\n        return value\n    }\n\n    fun peek(): Int? {\n        if (count == 0) return null\n        return buffer[head]\n    }\n}"
+          },
+          "tests": [
+            { "input": "capacity=2; enqueue(10); enqueue(20); peek()", "output": "10 (renvoyé sans retirer l'élément, la file reste [10, 20])" },
+            { "input": "suite: enqueue(30)", "output": "false (file pleine, insertion refusée explicitement)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "File FIFO double sortie avec drain(n)",
+          "statement": "Étendre la file circulaire avec drainFirst(n), qui retire et renvoie, dans l'ordre FIFO, jusqu'à n éléments en tête d'un coup (moins si la file en contient moins), en une seule opération. Ajouter aussi enqueueFront(value), qui insère un élément directement en tête (prioritaire, hors ordre FIFO normal), tant que la capacité le permet ; ces deux opérations doivent rester cohérentes avec les index tête/queue du buffer circulaire.",
+          "swift": {
+            "signature": "class DrainableCircularQueue {\n    init(capacity: Int) { }\n    func enqueue(_ value: Int) -> Bool { }\n    func enqueueFront(_ value: Int) -> Bool { }\n    func dequeue() -> Int? { }\n    func drainFirst(_ n: Int) -> [Int] { }\n}",
+            "solution": "class DrainableCircularQueue {\n    private var buffer: [Int?]\n    private var head = 0\n    private var count = 0\n    private let capacity: Int\n\n    init(capacity: Int) {\n        self.capacity = capacity\n        self.buffer = Array(repeating: nil, count: capacity)\n    }\n\n    func enqueue(_ value: Int) -> Bool {\n        guard count < capacity else { return false }\n        let tail = (head + count) % capacity\n        buffer[tail] = value\n        count += 1\n        return true\n    }\n\n    func enqueueFront(_ value: Int) -> Bool {\n        guard count < capacity else { return false }\n        head = (head - 1 + capacity) % capacity\n        buffer[head] = value\n        count += 1\n        return true\n    }\n\n    func dequeue() -> Int? {\n        guard count > 0 else { return nil }\n        let value = buffer[head]\n        buffer[head] = nil\n        head = (head + 1) % capacity\n        count -= 1\n        return value\n    }\n\n    func drainFirst(_ n: Int) -> [Int] {\n        var result: [Int] = []\n        let toDrain = min(n, count)\n        for _ in 0..<toDrain {\n            if let value = dequeue() {\n                result.append(value)\n            }\n        }\n        return result\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class DrainableCircularQueue(private val capacity: Int) {\n    fun enqueue(value: Int): Boolean { }\n    fun enqueueFront(value: Int): Boolean { }\n    fun dequeue(): Int? { }\n    fun drainFirst(n: Int): List<Int> { }\n}",
+            "solution": "class DrainableCircularQueue(private val capacity: Int) {\n    private val buffer = arrayOfNulls<Int>(capacity)\n    private var head = 0\n    private var count = 0\n\n    fun enqueue(value: Int): Boolean {\n        if (count >= capacity) return false\n        val tail = (head + count) % capacity\n        buffer[tail] = value\n        count++\n        return true\n    }\n\n    fun enqueueFront(value: Int): Boolean {\n        if (count >= capacity) return false\n        head = (head - 1 + capacity) % capacity\n        buffer[head] = value\n        count++\n        return true\n    }\n\n    fun dequeue(): Int? {\n        if (count == 0) return null\n        val value = buffer[head]\n        buffer[head] = null\n        head = (head + 1) % capacity\n        count--\n        return value\n    }\n\n    fun drainFirst(n: Int): List<Int> {\n        val result = mutableListOf<Int>()\n        val toDrain = minOf(n, count)\n        repeat(toDrain) {\n            dequeue()?.let { result.add(it) }\n        }\n        return result\n    }\n}"
+          },
+          "tests": [
+            { "input": "capacity=5; enqueue(1); enqueue(2); enqueue(3); drainFirst(2)", "output": "[1, 2] (dans l'ordre FIFO), la file ne contient plus que [3]" },
+            { "input": "suite: enqueueFront(99) puis dequeue()", "output": "99 (inséré en tête hors ordre FIFO, donc ressorti en premier au prochain dequeue, avant le 3 restant)" }
+          ]
+        }
+      ]
     },
     {
       "id": "lru-cache",
