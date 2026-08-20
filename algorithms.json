@@ -611,7 +611,62 @@
       "fullDescription": "Le parcours en largeur (BFS, via une file) traite les nœuds niveau par niveau ; le parcours en profondeur (DFS, via récursion ou une pile) descend une branche jusqu'au bout avant de revenir en arrière. Souvent posé sur un arbre concret plutôt qu'abstrait pour vérifier la traduction en code.",
       "ios": "Parcourir un modèle de données arborescent qui alimente une OutlineGroup ou une List(_:children:) SwiftUI pour trouver un nœud selon un critère, ou parcourir un arbre JSON décodé en structures imbriquées.",
       "android": "Parcourir un modèle de données arborescent qui alimente un composable récursif (un TreeNode(node) qui s'appelle lui-même pour ses enfants) pour trouver un nœud selon un critère, ou parcourir la même structure JSON imbriquée côté Kotlin.",
-      "keywords": ["BFS", "DFS", "tree traversal", "recursion", "queue vs stack"]
+      "keywords": ["BFS", "DFS", "tree traversal", "recursion", "queue vs stack"],
+      "docUrl": "https://en.wikipedia.org/wiki/Tree_traversal",
+      "practiceUrl": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Parcours en profondeur (pre-order)",
+          "statement": "Étant donné un arbre où chaque nœud a une valeur et une liste d'enfants (zéro, un ou plusieurs, pas seulement binaire), implémenter depthFirstValues(root) qui renvoie les valeurs de tous les nœuds selon un parcours en profondeur pre-order (le nœud courant avant ses enfants, enfants visités de gauche à droite). Si root est nil/null, renvoyer une liste vide.",
+          "swift": {
+            "signature": "class TreeNode {\n    let value: Int\n    var children: [TreeNode]\n    init(_ value: Int, _ children: [TreeNode] = []) {\n        self.value = value\n        self.children = children\n    }\n}\n\nfunc depthFirstValues(_ root: TreeNode?) -> [Int] { }",
+            "solution": "class TreeNode {\n    let value: Int\n    var children: [TreeNode]\n    init(_ value: Int, _ children: [TreeNode] = []) {\n        self.value = value\n        self.children = children\n    }\n}\n\nfunc depthFirstValues(_ root: TreeNode?) -> [Int] {\n    guard let root = root else { return [] }\n    var result: [Int] = [root.value]\n    for child in root.children {\n        result.append(contentsOf: depthFirstValues(child))\n    }\n    return result\n}"
+          },
+          "kotlin": {
+            "signature": "class TreeNode(val value: Int, val children: List<TreeNode> = emptyList())\n\nfun depthFirstValues(root: TreeNode?): List<Int> { }",
+            "solution": "class TreeNode(val value: Int, val children: List<TreeNode> = emptyList())\n\nfun depthFirstValues(root: TreeNode?): List<Int> {\n    if (root == null) return emptyList()\n    val result = mutableListOf(root.value)\n    for (child in root.children) {\n        result.addAll(depthFirstValues(child))\n    }\n    return result\n}"
+          },
+          "tests": [
+            { "input": "arbre A(B(D, E), C) où A est la racine avec enfants [B, C], B a enfants [D, E]", "output": "[A, B, D, E, C] (pre-order : le nœud avant ses enfants, de gauche à droite)" },
+            { "input": "arbre réduit à un seul nœud racine X sans enfants", "output": "[X]" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Parcours en largeur groupé par niveau",
+          "statement": "Implémenter breadthFirstLevels(root) qui renvoie les valeurs de l'arbre groupées niveau par niveau, chaque niveau étant une liste ordonnée de gauche à droite, la racine formant le niveau 0. Utiliser un parcours en largeur (BFS) via une file. Si root est nil/null, renvoyer une liste vide.",
+          "swift": {
+            "signature": "func breadthFirstLevels(_ root: TreeNode?) -> [[Int]] { }",
+            "solution": "func breadthFirstLevels(_ root: TreeNode?) -> [[Int]] {\n    guard let root = root else { return [] }\n    var levels: [[Int]] = []\n    var queue: [TreeNode] = [root]\n    while !queue.isEmpty {\n        var currentLevel: [Int] = []\n        var nextQueue: [TreeNode] = []\n        for node in queue {\n            currentLevel.append(node.value)\n            nextQueue.append(contentsOf: node.children)\n        }\n        levels.append(currentLevel)\n        queue = nextQueue\n    }\n    return levels\n}"
+          },
+          "kotlin": {
+            "signature": "fun breadthFirstLevels(root: TreeNode?): List<List<Int>> { }",
+            "solution": "fun breadthFirstLevels(root: TreeNode?): List<List<Int>> {\n    if (root == null) return emptyList()\n    val levels = mutableListOf<List<Int>>()\n    var queue: List<TreeNode> = listOf(root)\n    while (queue.isNotEmpty()) {\n        val currentLevel = mutableListOf<Int>()\n        val nextQueue = mutableListOf<TreeNode>()\n        for (node in queue) {\n            currentLevel.add(node.value)\n            nextQueue.addAll(node.children)\n        }\n        levels.add(currentLevel)\n        queue = nextQueue\n    }\n    return levels\n}"
+          },
+          "tests": [
+            { "input": "arbre A(B(D, E), C) où A est la racine avec enfants [B, C], B a enfants [D, E]", "output": "[[A], [B, C], [D, E]] (un sous-tableau par niveau, de la racine vers les feuilles)" },
+            { "input": "arbre réduit à un seul nœud racine X sans enfants", "output": "[[X]] (un seul niveau contenant la racine)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Chemin vers le premier nœud correspondant",
+          "statement": "Implémenter find(root, predicate) qui renvoie le chemin, de la racine jusqu'au premier nœud (en pre-order) dont la valeur satisfait predicate, sous forme de liste de valeurs. S'arrêter dès qu'un nœud correspondant est trouvé (pas besoin de continuer à explorer le reste de l'arbre). Si aucun nœud ne correspond, ou si root est nil/null, renvoyer nil/null.",
+          "swift": {
+            "signature": "func find(_ root: TreeNode?, _ predicate: (Int) -> Bool) -> [Int]? { }",
+            "solution": "func find(_ root: TreeNode?, _ predicate: (Int) -> Bool) -> [Int]? {\n    guard let root = root else { return nil }\n    if predicate(root.value) {\n        return [root.value]\n    }\n    for child in root.children {\n        if let subPath = find(child, predicate) {\n            return [root.value] + subPath\n        }\n    }\n    return nil\n}"
+          },
+          "kotlin": {
+            "signature": "fun find(root: TreeNode?, predicate: (Int) -> Boolean): List<Int>? { }",
+            "solution": "fun find(root: TreeNode?, predicate: (Int) -> Boolean): List<Int>? {\n    if (root == null) return null\n    if (predicate(root.value)) {\n        return listOf(root.value)\n    }\n    for (child in root.children) {\n        val subPath = find(child, predicate)\n        if (subPath != null) {\n            return listOf(root.value) + subPath\n        }\n    }\n    return null\n}"
+          },
+          "tests": [
+            { "input": "arbre A(B(D, E), C) où A est la racine avec enfants [B, C], B a enfants [D, E] ; predicate = valeur == E", "output": "[A, B, E] (chemin de la racine jusqu'à E, trouvé en descendant la branche B avant d'explorer C)" },
+            { "input": "même arbre ; predicate = valeur == Z (absent de l'arbre)", "output": "nil (aucun nœud ne correspond, tout l'arbre a été exploré sans résultat)" }
+          ]
+        }
+      ]
     },
     {
       "id": "topological-sort",
