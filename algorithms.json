@@ -327,7 +327,7 @@
         {
           "level": "difficile",
           "title": "Détecter un cycle (hasCycle)",
-          "statement": "Ajouter hasCycle(), qui détecte si la liste contient un cycle — c'est-à-dire qu'un nœud, en suivant next, finit par revenir sur un nœud déjà visité au lieu d'atteindre nil/null. Comme la liste n'expose pas de méthode pour créer un cycle publiquement, l'exercice fournit un constructeur interne de test qui relie manuellement le dernier nœud à un nœud antérieur.",
+          "statement": "Ajouter hasCycle(), qui détecte si la liste contient un cycle — c'est-à-dire qu'un nœud, en suivant next, finit par revenir sur un nœud déjà visité au lieu d'atteindre nil/null. Comme la liste n'expose pas de méthode pour créer un cycle publiquement, les tests créent un cycle artificiel en reliant manuellement le dernier nœud à un nœud antérieur.",
           "swift": {
             "signature": "class LinkedList {\n    func append(_ value: Int) { }\n    func hasCycle() -> Bool { }\n}",
             "solution": "class Node {\n    var value: Int\n    var next: Node?\n    init(_ value: Int) {\n        self.value = value\n    }\n}\n\nclass LinkedList {\n    private var head: Node?\n    private var tail: Node?\n\n    func append(_ value: Int) {\n        let node = Node(value)\n        if let tail = tail {\n            tail.next = node\n        } else {\n            head = node\n        }\n        tail = node\n    }\n\n    func hasCycle() -> Bool {\n        var slow = head\n        var fast = head\n        while fast?.next != nil {\n            slow = slow?.next\n            fast = fast?.next?.next\n            if slow === fast {\n                return true\n            }\n        }\n        return false\n    }\n}"
