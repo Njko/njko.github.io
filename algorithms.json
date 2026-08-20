@@ -1064,7 +1064,80 @@
       "fullDescription": "Transformer une structure arborescente (sections, sous-sections, éléments) en une liste plate à une dimension adaptée à un composant de liste, en conservant la profondeur et l'état d'expansion de chaque nœud, et en ré-aplatissant dynamiquement quand une section est repliée ou dépliée.",
       "ios": "SwiftUI peut afficher une hiérarchie directement via List(data, children: \\.children) ou OutlineGroup sans aplatissement manuel ; l'exercice reste pertinent pour un layout personnalisé (LazyVStack) où l'on gère soi-même la profondeur et l'état d'expansion par identifiant de nœud.",
       "android": "Même aplatissement récursif, mais dans un LazyColumn : chaque item porte son niveau de profondeur pour l'indentation et un identifiant de nœud stable comme clé (key = node.id) pour l'état d'expansion — Compose n'a pas d'équivalent natif à un composant de liste hiérarchique, l'aplatissement reste donc la norme.",
-      "keywords": ["flatten tree", "expandable list", "nested sections", "recursion", "LazyColumn stable key"]
+      "keywords": ["flatten tree", "expandable list", "nested sections", "recursion", "LazyColumn stable key"],
+      "docUrl": "https://en.wikipedia.org/wiki/Tree_(data_structure)",
+      "practiceUrl": "https://leetcode.com/problems/flatten-binary-tree-to-linked-list/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Aplatissement simple d'un arbre",
+          "statement": "On modélise un nœud d'arbre avec un identifiant (id), une valeur (value) et une liste d'enfants (children). Écrire flatten(root) qui parcourt l'arbre en profondeur (le nœud courant avant ses enfants, enfants visités de gauche à droite) et renvoie la liste ordonnée des couples (valeur, profondeur), où la profondeur de la racine vaut 0 et augmente de 1 à chaque niveau descendu. Ignorer tout état d'expansion : la fonction aplatit la totalité de l'arbre.",
+          "swift": {
+            "signature": "class TreeNode {\n    let id: String\n    let value: String\n    var children: [TreeNode]\n    init(_ id: String, _ value: String, _ children: [TreeNode] = []) {\n        self.id = id\n        self.value = value\n        self.children = children\n    }\n}\n\nfunc flatten(_ root: TreeNode) -> [(value: String, depth: Int)] { }",
+            "solution": "class TreeNode {\n    let id: String\n    let value: String\n    var children: [TreeNode]\n    init(_ id: String, _ value: String, _ children: [TreeNode] = []) {\n        self.id = id\n        self.value = value\n        self.children = children\n    }\n}\n\nfunc flatten(_ root: TreeNode) -> [(value: String, depth: Int)] {\n    var result: [(value: String, depth: Int)] = []\n    func visit(_ node: TreeNode, _ depth: Int) {\n        result.append((node.value, depth))\n        for child in node.children {\n            visit(child, depth + 1)\n        }\n    }\n    visit(root, 0)\n    return result\n}"
+          },
+          "kotlin": {
+            "signature": "class TreeNode(val id: String, val value: String, val children: List<TreeNode> = emptyList())\n\nfun flatten(root: TreeNode): List<Pair<String, Int>> { }",
+            "solution": "class TreeNode(val id: String, val value: String, val children: List<TreeNode> = emptyList())\n\nfun flatten(root: TreeNode): List<Pair<String, Int>> {\n    val result = mutableListOf<Pair<String, Int>>()\n    fun visit(node: TreeNode, depth: Int) {\n        result.add(node.value to depth)\n        node.children.forEach { visit(it, depth + 1) }\n    }\n    visit(root, 0)\n    return result\n}"
+          },
+          "tests": [
+            {
+              "input": "arbre A (id=a) avec enfants B (id=b, qui a pour enfant D id=d) et C (id=c, sans enfants) — appel flatten(A)",
+              "output": "[(A,0), (B,1), (D,2), (C,1)]"
+            },
+            {
+              "input": "arbre réduit à un seul nœud X (id=x) sans enfants — appel flatten(X)",
+              "output": "[(X,0)]"
+            }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Aplatissement avec sections repliables",
+          "statement": "Étendre flatten pour qu'il prenne en second paramètre expandedIds, l'ensemble des identifiants de nœuds actuellement dépliés. Un nœud absent de expandedIds voit ses enfants exclus du résultat — mais le nœud lui-même doit toujours apparaître dans la liste aplatie, seule sa descendance est masquée. Un nœud sans enfants n'est pas affecté par son absence de expandedIds.",
+          "swift": {
+            "signature": "class TreeNode {\n    let id: String\n    let value: String\n    var children: [TreeNode]\n    init(_ id: String, _ value: String, _ children: [TreeNode] = []) {\n        self.id = id\n        self.value = value\n        self.children = children\n    }\n}\n\nfunc flatten(_ root: TreeNode, expandedIds: Set<String>) -> [(value: String, depth: Int)] { }",
+            "solution": "class TreeNode {\n    let id: String\n    let value: String\n    var children: [TreeNode]\n    init(_ id: String, _ value: String, _ children: [TreeNode] = []) {\n        self.id = id\n        self.value = value\n        self.children = children\n    }\n}\n\nfunc flatten(_ root: TreeNode, expandedIds: Set<String>) -> [(value: String, depth: Int)] {\n    var result: [(value: String, depth: Int)] = []\n    func visit(_ node: TreeNode, _ depth: Int) {\n        result.append((node.value, depth))\n        guard expandedIds.contains(node.id) else { return }\n        for child in node.children {\n            visit(child, depth + 1)\n        }\n    }\n    visit(root, 0)\n    return result\n}"
+          },
+          "kotlin": {
+            "signature": "class TreeNode(val id: String, val value: String, val children: List<TreeNode> = emptyList())\n\nfun flatten(root: TreeNode, expandedIds: Set<String>): List<Pair<String, Int>> { }",
+            "solution": "class TreeNode(val id: String, val value: String, val children: List<TreeNode> = emptyList())\n\nfun flatten(root: TreeNode, expandedIds: Set<String>): List<Pair<String, Int>> {\n    val result = mutableListOf<Pair<String, Int>>()\n    fun visit(node: TreeNode, depth: Int) {\n        result.add(node.value to depth)\n        if (node.id !in expandedIds) return\n        node.children.forEach { visit(it, depth + 1) }\n    }\n    visit(root, 0)\n    return result\n}"
+          },
+          "tests": [
+            {
+              "input": "même arbre (A→[B→[D], C]) ; expandedIds = {a} (seule la racine est dépliée) — appel flatten(A, {a})",
+              "output": "[(A,0), (B,1), (C,1)] — B et C apparaissent car A est déplié, mais D est masqué car B est replié"
+            },
+            {
+              "input": "même arbre ; expandedIds = {} (rien n'est déplié, même pas la racine) — appel flatten(A, {})",
+              "output": "[(A,0)] — seule la racine apparaît, tous ses descendants sont masqués"
+            }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Basculer l'expansion d'une section",
+          "statement": "Écrire toggle(root, expandedIds, nodeId) qui bascule la présence de nodeId dans expandedIds (l'ajoute s'il est absent, le retire s'il est présent) et renvoie le nouvel ensemble ; si nodeId n'existe pas dans l'arbre, renvoyer expandedIds inchangé. En ré-aplatissant avec flatten(root, newExpandedIds) (celui de l'exercice précédent), vérifier que seul le sous-arbre de nodeId change de visibilité — l'état d'expansion des autres nœuds (frères, ancêtres, sous-arbres non liés) reste inchangé.",
+          "swift": {
+            "signature": "class TreeNode {\n    let id: String\n    let value: String\n    var children: [TreeNode]\n    init(_ id: String, _ value: String, _ children: [TreeNode] = []) {\n        self.id = id\n        self.value = value\n        self.children = children\n    }\n}\n\nfunc toggle(_ root: TreeNode, _ expandedIds: Set<String>, _ nodeId: String) -> Set<String> { }\n\nfunc flatten(_ root: TreeNode, expandedIds: Set<String>) -> [(value: String, depth: Int)] { }",
+            "solution": "class TreeNode {\n    let id: String\n    let value: String\n    var children: [TreeNode]\n    init(_ id: String, _ value: String, _ children: [TreeNode] = []) {\n        self.id = id\n        self.value = value\n        self.children = children\n    }\n}\n\nfunc toggle(_ root: TreeNode, _ expandedIds: Set<String>, _ nodeId: String) -> Set<String> {\n    func contains(_ node: TreeNode) -> Bool {\n        if node.id == nodeId { return true }\n        return node.children.contains { contains($0) }\n    }\n    guard contains(root) else { return expandedIds }\n    var result = expandedIds\n    if result.contains(nodeId) {\n        result.remove(nodeId)\n    } else {\n        result.insert(nodeId)\n    }\n    return result\n}\n\nfunc flatten(_ root: TreeNode, expandedIds: Set<String>) -> [(value: String, depth: Int)] {\n    var result: [(value: String, depth: Int)] = []\n    func visit(_ node: TreeNode, _ depth: Int) {\n        result.append((node.value, depth))\n        guard expandedIds.contains(node.id) else { return }\n        for child in node.children {\n            visit(child, depth + 1)\n        }\n    }\n    visit(root, 0)\n    return result\n}"
+          },
+          "kotlin": {
+            "signature": "class TreeNode(val id: String, val value: String, val children: List<TreeNode> = emptyList())\n\nfun toggle(root: TreeNode, expandedIds: Set<String>, nodeId: String): Set<String> { }\n\nfun flatten(root: TreeNode, expandedIds: Set<String>): List<Pair<String, Int>> { }",
+            "solution": "class TreeNode(val id: String, val value: String, val children: List<TreeNode> = emptyList())\n\nfun toggle(root: TreeNode, expandedIds: Set<String>, nodeId: String): Set<String> {\n    fun contains(node: TreeNode): Boolean {\n        if (node.id == nodeId) return true\n        return node.children.any { contains(it) }\n    }\n    if (!contains(root)) return expandedIds\n    return if (nodeId in expandedIds) expandedIds - nodeId else expandedIds + nodeId\n}\n\nfun flatten(root: TreeNode, expandedIds: Set<String>): List<Pair<String, Int>> {\n    val result = mutableListOf<Pair<String, Int>>()\n    fun visit(node: TreeNode, depth: Int) {\n        result.add(node.value to depth)\n        if (node.id !in expandedIds) return\n        node.children.forEach { visit(it, depth + 1) }\n    }\n    visit(root, 0)\n    return result\n}"
+          },
+          "tests": [
+            {
+              "input": "arbre A(id=a)→[B(id=b)→[D(id=d)], C(id=c)→[E(id=e)]] ; expandedIds initial = {a, c} — appel toggle(A, {a,c}, \"b\") puis flatten(A, résultat)",
+              "output": "newExpandedIds = {a, b, c} ; flatten renvoie [(A,0), (B,1), (D,2), (C,1), (E,2)] — le sous-arbre de B (D) apparaît désormais, celui de C (E) reste inchangé"
+            },
+            {
+              "input": "même arbre et même expandedIds initial {a, c} — appel toggle(A, {a,c}, \"c\") puis flatten(A, résultat)",
+              "output": "newExpandedIds = {a} ; flatten renvoie [(A,0), (B,1), (C,1)] — le sous-arbre de C (E) est désormais masqué, l'état de B (déjà replié) reste inchangé"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
