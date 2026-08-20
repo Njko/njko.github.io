@@ -5,6 +5,7 @@ const PALETTE = [
   '#e63946', '#f1a208', '#ffd60a', '#2a9d8f', '#457b9d',
   '#8338ec', '#ff006e', '#06d6a0', '#fb5607'
 ];
+const LEVEL_LABELS = { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile' };
 
 const canvas = document.getElementById('wheel-canvas');
 const ctx = canvas.getContext('2d');
@@ -17,6 +18,9 @@ const resultDescription = document.getElementById('result-description');
 const resultKeywords = document.getElementById('result-keywords');
 const resultIos = document.getElementById('result-ios');
 const resultAndroid = document.getElementById('result-android');
+const resultDocLink = document.getElementById('result-doc-link');
+const resultPracticeLink = document.getElementById('result-practice-link');
+const resultExercises = document.getElementById('result-exercises');
 const relaunchButton = document.getElementById('relaunch-btn');
 const wheelView = document.getElementById('wheel-view');
 const listView = document.getElementById('list-view');
@@ -163,6 +167,132 @@ function handleSpinClick() {
   });
 }
 
+function renderResultLinks(algorithm) {
+  if (algorithm.docUrl) {
+    resultDocLink.href = algorithm.docUrl;
+    resultDocLink.hidden = false;
+  } else {
+    resultDocLink.hidden = true;
+  }
+  if (algorithm.practiceUrl) {
+    resultPracticeLink.href = algorithm.practiceUrl;
+    resultPracticeLink.hidden = false;
+  } else {
+    resultPracticeLink.hidden = true;
+  }
+}
+
+function buildLangPanel(lang, code, isActive) {
+  const panel = document.createElement('div');
+  panel.className = 'lang-panel';
+  panel.dataset.lang = lang;
+  panel.hidden = !isActive;
+
+  const signature = document.createElement('pre');
+  signature.className = 'code-block signature';
+  const signatureCode = document.createElement('code');
+  signatureCode.textContent = code.signature;
+  signature.appendChild(signatureCode);
+
+  const solution = document.createElement('pre');
+  solution.className = 'code-block solution';
+  solution.hidden = true;
+  const solutionCode = document.createElement('code');
+  solutionCode.textContent = code.solution;
+  solution.appendChild(solutionCode);
+
+  panel.append(signature, solution);
+  return panel;
+}
+
+function buildExerciseElement(exercise) {
+  const details = document.createElement('details');
+  details.className = 'exercise';
+  details.dataset.level = exercise.level;
+
+  const summary = document.createElement('summary');
+  summary.textContent = `${LEVEL_LABELS[exercise.level]} — ${exercise.title}`;
+  details.appendChild(summary);
+
+  const body = document.createElement('div');
+  body.className = 'exercise-body';
+
+  const statement = document.createElement('p');
+  statement.className = 'exercise-statement';
+  statement.textContent = exercise.statement;
+  body.appendChild(statement);
+
+  const tabs = document.createElement('div');
+  tabs.className = 'lang-tabs';
+  const swiftTab = document.createElement('button');
+  swiftTab.type = 'button';
+  swiftTab.className = 'lang-tab active';
+  swiftTab.dataset.lang = 'swift';
+  swiftTab.textContent = 'Swift';
+  const kotlinTab = document.createElement('button');
+  kotlinTab.type = 'button';
+  kotlinTab.className = 'lang-tab';
+  kotlinTab.dataset.lang = 'kotlin';
+  kotlinTab.textContent = 'Kotlin';
+  tabs.append(swiftTab, kotlinTab);
+  body.appendChild(tabs);
+
+  body.appendChild(buildLangPanel('swift', exercise.swift, true));
+  body.appendChild(buildLangPanel('kotlin', exercise.kotlin, false));
+
+  const tests = document.createElement('div');
+  tests.className = 'exercise-tests';
+  exercise.tests.forEach((test) => {
+    const line = document.createElement('p');
+    line.className = 'exercise-test';
+    const input = document.createElement('code');
+    input.textContent = test.input;
+    const output = document.createElement('code');
+    output.textContent = test.output;
+    line.append(input, ' → ', output);
+    tests.appendChild(line);
+  });
+  body.appendChild(tests);
+
+  const revealBtn = document.createElement('button');
+  revealBtn.type = 'button';
+  revealBtn.className = 'reveal-btn';
+  revealBtn.textContent = 'Révéler la solution';
+  body.appendChild(revealBtn);
+
+  details.appendChild(body);
+  return details;
+}
+
+function renderExercises(exercises) {
+  resultExercises.replaceChildren(...exercises.map(buildExerciseElement));
+}
+
+function handleExercisesClick(event) {
+  const tab = event.target.closest('.lang-tab');
+  if (tab) {
+    const exercise = tab.closest('.exercise');
+    const lang = tab.dataset.lang;
+    exercise.querySelectorAll('.lang-tab').forEach((btn) => {
+      btn.classList.toggle('active', btn === tab);
+    });
+    exercise.querySelectorAll('.lang-panel').forEach((panel) => {
+      panel.hidden = panel.dataset.lang !== lang;
+    });
+    return;
+  }
+
+  const revealBtn = event.target.closest('.reveal-btn');
+  if (revealBtn) {
+    const exercise = revealBtn.closest('.exercise');
+    const revealed = exercise.classList.toggle('solution-revealed');
+    exercise.querySelectorAll('.code-block.solution').forEach((solution) => {
+      solution.hidden = !revealed;
+    });
+    revealBtn.textContent = revealed ? 'Masquer la solution' : 'Révéler la solution';
+  }
+}
+
 function showResult(algorithm) {
   resultName.textContent = algorithm.name;
   resultDescription.textContent = algorithm.fullDescription;
@@ -176,6 +306,8 @@ function showResult(algorithm) {
   );
   resultIos.textContent = algorithm.ios;
   resultAndroid.textContent = algorithm.android;
+  renderResultLinks(algorithm);
+  renderExercises(algorithm.exercises);
   relaunchButton.textContent = currentView === 'list' ? 'Fermer' : 'Relancer';
   resultPanel.hidden = false;
 }
@@ -260,6 +392,7 @@ async function init() {
   spinButton.addEventListener('click', handleSpinClick);
   relaunchButton.addEventListener('click', hideResultPanel);
   toggleViewButton.addEventListener('click', handleToggleViewClick);
+  resultExercises.addEventListener('click', handleExercisesClick);
 }
 
 init();
