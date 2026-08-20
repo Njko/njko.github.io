@@ -676,7 +676,62 @@
       "fullDescription": "Tri qui ordonne les nœuds d'un graphe orienté acyclique de sorte que chaque nœud apparaisse après toutes ses dépendances, typiquement via un parcours DFS avec pile de sortie ou un algorithme de Kahn basé sur les degrés entrants. Sert à valider qu'un candidat sait détecter les dépendances cycliques.",
       "ios": "Ordonnancer des Operation dans une OperationQueue via des dépendances explicites (addDependency), où un cycle de dépendances bloquerait la queue indéfiniment.",
       "android": "Chaîner des WorkRequest dans WorkManager (via then()/chain de travaux), l'équivalent conceptuel d'un graphe de tâches à exécuter dans le bon ordre.",
-      "keywords": ["topological sort", "DAG", "dependency graph", "Kahn's algorithm", "cycle detection"]
+      "keywords": ["topological sort", "DAG", "dependency graph", "Kahn's algorithm", "cycle detection"],
+      "docUrl": "https://en.wikipedia.org/wiki/Topological_sorting",
+      "practiceUrl": "https://leetcode.com/problems/course-schedule/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Détecter un cycle de dépendances",
+          "statement": "Le graphe est représenté par un dictionnaire graph où graph[u] est la liste des nœuds v tels que u doit être terminé avant v (arête orientée u → v). Toutes les tâches du graphe apparaissent comme clés, y compris celles sans successeur (associées à une liste vide). Écrire hasCycle(graph) qui renvoie vrai si le graphe de dépendances contient au moins un cycle (rendant tout ordonnancement impossible), faux sinon.",
+          "swift": {
+            "signature": "func hasCycle(_ graph: [Int: [Int]]) -> Bool { }",
+            "solution": "func hasCycle(_ graph: [Int: [Int]]) -> Bool {\n    enum State { case unvisited, visiting, visited }\n    var state: [Int: State] = [:]\n    for node in graph.keys { state[node] = .unvisited }\n\n    func dfs(_ node: Int) -> Bool {\n        state[node] = .visiting\n        for neighbor in graph[node] ?? [] {\n            switch state[neighbor, default: .unvisited] {\n            case .visiting:\n                return true\n            case .unvisited:\n                if dfs(neighbor) { return true }\n            case .visited:\n                continue\n            }\n        }\n        state[node] = .visited\n        return false\n    }\n\n    for node in graph.keys {\n        if state[node] == .unvisited, dfs(node) {\n            return true\n        }\n    }\n    return false\n}"
+          },
+          "kotlin": {
+            "signature": "fun hasCycle(graph: Map<Int, List<Int>>): Boolean { }",
+            "solution": "fun hasCycle(graph: Map<Int, List<Int>>): Boolean {\n    enum class State { UNVISITED, VISITING, VISITED }\n    val state = HashMap<Int, State>()\n    for (node in graph.keys) state[node] = State.UNVISITED\n\n    fun dfs(node: Int): Boolean {\n        state[node] = State.VISITING\n        for (neighbor in graph[node].orEmpty()) {\n            when (state[neighbor] ?: State.UNVISITED) {\n                State.VISITING -> return true\n                State.UNVISITED -> if (dfs(neighbor)) return true\n                State.VISITED -> {}\n            }\n        }\n        state[node] = State.VISITED\n        return false\n    }\n\n    for (node in graph.keys) {\n        if (state[node] == State.UNVISITED && dfs(node)) {\n            return true\n        }\n    }\n    return false\n}"
+          },
+          "tests": [
+            { "input": "graph = {1: [2], 2: [3], 3: []}", "output": "faux (aucun cycle, 1 → 2 → 3)" },
+            { "input": "graph = {1: [2], 2: [3], 3: [1]}", "output": "vrai (cycle 1 → 2 → 3 → 1)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Calculer un ordre topologique",
+          "statement": "Même représentation du graphe que précédemment : graph[u] liste les nœuds qui doivent être exécutés après u. Écrire topologicalOrder(graph) qui renvoie un ordre valide (chaque nœud apparaît après tous ceux dont il dépend), ou nil/null si le graphe contient un cycle et qu'aucun ordre n'est possible.",
+          "swift": {
+            "signature": "func topologicalOrder(_ graph: [Int: [Int]]) -> [Int]? { }",
+            "solution": "func topologicalOrder(_ graph: [Int: [Int]]) -> [Int]? {\n    var inDegree: [Int: Int] = [:]\n    for node in graph.keys { inDegree[node] = 0 }\n    for (_, neighbors) in graph {\n        for neighbor in neighbors {\n            inDegree[neighbor, default: 0] += 1\n        }\n    }\n\n    var queue = inDegree.filter { $0.value == 0 }.map { $0.key }\n    var order: [Int] = []\n\n    while !queue.isEmpty {\n        let node = queue.removeFirst()\n        order.append(node)\n        for neighbor in graph[node] ?? [] {\n            inDegree[neighbor]! -= 1\n            if inDegree[neighbor] == 0 {\n                queue.append(neighbor)\n            }\n        }\n    }\n\n    return order.count == graph.keys.count ? order : nil\n}"
+          },
+          "kotlin": {
+            "signature": "fun topologicalOrder(graph: Map<Int, List<Int>>): List<Int>? { }",
+            "solution": "fun topologicalOrder(graph: Map<Int, List<Int>>): List<Int>? {\n    val inDegree = HashMap<Int, Int>()\n    for (node in graph.keys) inDegree[node] = 0\n    for (neighbors in graph.values) {\n        for (neighbor in neighbors) {\n            inDegree[neighbor] = (inDegree[neighbor] ?: 0) + 1\n        }\n    }\n\n    val queue = ArrayDeque(inDegree.filter { it.value == 0 }.keys.toList())\n    val order = mutableListOf<Int>()\n\n    while (queue.isNotEmpty()) {\n        val node = queue.removeFirst()\n        order.add(node)\n        for (neighbor in graph[node].orEmpty()) {\n            inDegree[neighbor] = inDegree.getValue(neighbor) - 1\n            if (inDegree[neighbor] == 0) {\n                queue.addLast(neighbor)\n            }\n        }\n    }\n\n    return if (order.size == graph.keys.size) order else null\n}"
+          },
+          "tests": [
+            { "input": "graph = {1: [2, 3], 2: [4], 3: [4], 4: []}", "output": "un ordre valide, par ex. [1, 2, 3, 4] (1 avant 2 et 3, eux-mêmes avant 4)" },
+            { "input": "graph = {1: [2], 2: [1]}", "output": "nil/null (cycle 1 ↔ 2, aucun ordre possible)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Ordre topologique avec localisation des cycles",
+          "statement": "Même convention de graphe. Écrire topologicalOrderWithCycles(graph), qui renvoie soit un ordre topologique complet (si le graphe est acyclique), soit — quand un cycle existe — la liste triée des identifiants de nœuds appartenant à au moins un cycle (les nœuds simplement situés en aval d'un cycle, sans en faire partie, ne doivent pas apparaître dans cette liste).",
+          "swift": {
+            "signature": "struct TopoResult {\n    let order: [Int]?      // nil si le graphe contient un cycle\n    let cycleNodes: [Int]  // vide si aucun cycle\n}\n\nfunc topologicalOrderWithCycles(_ graph: [Int: [Int]]) -> TopoResult { }",
+            "solution": "struct TopoResult {\n    let order: [Int]?\n    let cycleNodes: [Int]\n}\n\nfunc topologicalOrderWithCycles(_ graph: [Int: [Int]]) -> TopoResult {\n    enum State { case unvisited, visiting, visited }\n    var state: [Int: State] = [:]\n    for node in graph.keys { state[node] = .unvisited }\n    var stack: [Int] = []\n    var cycleNodes: Set<Int> = []\n    var postOrder: [Int] = []\n\n    func dfs(_ node: Int) {\n        state[node] = .visiting\n        stack.append(node)\n        for neighbor in graph[node] ?? [] {\n            switch state[neighbor, default: .unvisited] {\n            case .unvisited:\n                dfs(neighbor)\n            case .visiting:\n                if let ancestorIndex = stack.firstIndex(of: neighbor) {\n                    for n in stack[ancestorIndex...] { cycleNodes.insert(n) }\n                }\n            case .visited:\n                break\n            }\n        }\n        stack.removeLast()\n        state[node] = .visited\n        postOrder.append(node)\n    }\n\n    for node in graph.keys {\n        if state[node] == .unvisited {\n            dfs(node)\n        }\n    }\n\n    if cycleNodes.isEmpty {\n        return TopoResult(order: postOrder.reversed().map { $0 }, cycleNodes: [])\n    }\n    return TopoResult(order: nil, cycleNodes: cycleNodes.sorted())\n}"
+          },
+          "kotlin": {
+            "signature": "data class TopoResult(val order: List<Int>?, val cycleNodes: List<Int>)\n\nfun topologicalOrderWithCycles(graph: Map<Int, List<Int>>): TopoResult { }",
+            "solution": "data class TopoResult(val order: List<Int>?, val cycleNodes: List<Int>)\n\nfun topologicalOrderWithCycles(graph: Map<Int, List<Int>>): TopoResult {\n    enum class State { UNVISITED, VISITING, VISITED }\n    val state = HashMap<Int, State>()\n    for (node in graph.keys) state[node] = State.UNVISITED\n    val stack = mutableListOf<Int>()\n    val cycleNodes = mutableSetOf<Int>()\n    val postOrder = mutableListOf<Int>()\n\n    fun dfs(node: Int) {\n        state[node] = State.VISITING\n        stack.add(node)\n        for (neighbor in graph[node].orEmpty()) {\n            when (state[neighbor] ?: State.UNVISITED) {\n                State.UNVISITED -> dfs(neighbor)\n                State.VISITING -> {\n                    val ancestorIndex = stack.indexOf(neighbor)\n                    if (ancestorIndex != -1) {\n                        cycleNodes.addAll(stack.subList(ancestorIndex, stack.size))\n                    }\n                }\n                State.VISITED -> {}\n            }\n        }\n        stack.removeAt(stack.size - 1)\n        state[node] = State.VISITED\n        postOrder.add(node)\n    }\n\n    for (node in graph.keys) {\n        if (state[node] == State.UNVISITED) {\n            dfs(node)\n        }\n    }\n\n    return if (cycleNodes.isEmpty()) {\n        TopoResult(postOrder.reversed(), emptyList())\n    } else {\n        TopoResult(null, cycleNodes.sorted())\n    }\n}"
+          },
+          "tests": [
+            { "input": "graph = {1: [2], 2: [3], 3: [1], 4: []}", "output": "order = nil/null, cycleNodes = [1, 2, 3] (le nœud isolé 4 n'est pas dans un cycle)" },
+            { "input": "graph = {1: [2, 3], 2: [4], 3: [4], 4: []}", "output": "order = un ordre valide comme [1, 2, 3, 4], cycleNodes = [] (aucun cycle)" }
+          ]
+        }
+      ]
     },
     {
       "id": "merge-intervals",
