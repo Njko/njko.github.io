@@ -286,7 +286,62 @@
       "fullDescription": "Implémentation d'une liste chaînée simple ou double, générique sur le type stocké. Rarement demandée pour elle-même : sert de prétexte pour vérifier la compréhension du cycle de vie mémoire quand chaque nœud référence le suivant (et parfois le précédent).",
       "ios": "Avec ARC, un pointeur arrière (précédent) fort créerait un cycle de rétention ; il doit être déclaré weak pour que la liste puisse être désallouée correctement.",
       "android": "Le garbage collector d'ART gère les cycles de références automatiquement, donc pas de fuite par cycle ; la discussion porte plutôt sur les fuites via des références statiques ou un DisposableEffect Compose sans onDispose pour désenregistrer un listener.",
-      "keywords": ["linked list", "ARC", "retain cycle", "weak reference", "garbage collector"]
+      "keywords": ["linked list", "ARC", "retain cycle", "weak reference", "garbage collector"],
+      "docUrl": "https://en.wikipedia.org/wiki/Linked_list",
+      "practiceUrl": "https://leetcode.com/problems/linked-list-cycle/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Liste chaînée : append et toArray",
+          "statement": "Implémenter une liste chaînée simple avec append(value), qui ajoute un élément en fin de liste, et toArray(), qui renvoie le contenu de la liste sous forme de tableau, de la tête à la queue.",
+          "swift": {
+            "signature": "class LinkedList {\n    func append(_ value: Int) { }\n    func toArray() -> [Int] { }\n}",
+            "solution": "class Node {\n    var value: Int\n    var next: Node?\n    init(_ value: Int) {\n        self.value = value\n    }\n}\n\nclass LinkedList {\n    private var head: Node?\n    private var tail: Node?\n\n    func append(_ value: Int) {\n        let node = Node(value)\n        if let tail = tail {\n            tail.next = node\n        } else {\n            head = node\n        }\n        tail = node\n    }\n\n    func toArray() -> [Int] {\n        var result: [Int] = []\n        var current = head\n        while let node = current {\n            result.append(node.value)\n            current = node.next\n        }\n        return result\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class LinkedList {\n    fun append(value: Int) { }\n    fun toArray(): List<Int> { }\n}",
+            "solution": "class Node(val value: Int) {\n    var next: Node? = null\n}\n\nclass LinkedList {\n    private var head: Node? = null\n    private var tail: Node? = null\n\n    fun append(value: Int) {\n        val node = Node(value)\n        val currentTail = tail\n        if (currentTail != null) {\n            currentTail.next = node\n        } else {\n            head = node\n        }\n        tail = node\n    }\n\n    fun toArray(): List<Int> {\n        val result = mutableListOf<Int>()\n        var current = head\n        while (current != null) {\n            result.add(current.value)\n            current = current.next\n        }\n        return result\n    }\n}"
+          },
+          "tests": [
+            { "input": "append(1); append(2); append(3); toArray()", "output": "[1, 2, 3] (dans l'ordre d'insertion, de la tête à la queue)" },
+            { "input": "liste vide : toArray()", "output": "[] (aucun élément inséré)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Inverser une liste chaînée en place",
+          "statement": "Étendre la liste chaînée avec reverse(), qui inverse l'ordre des nœuds en place (sans allouer de nouvelle liste ni copier les valeurs dans un tableau intermédiaire), en réaffectant simplement les pointeurs next de chaque nœud.",
+          "swift": {
+            "signature": "class LinkedList {\n    func append(_ value: Int) { }\n    func toArray() -> [Int] { }\n    func reverse() { }\n}",
+            "solution": "class Node {\n    var value: Int\n    var next: Node?\n    init(_ value: Int) {\n        self.value = value\n    }\n}\n\nclass LinkedList {\n    private var head: Node?\n    private var tail: Node?\n\n    func append(_ value: Int) {\n        let node = Node(value)\n        if let tail = tail {\n            tail.next = node\n        } else {\n            head = node\n        }\n        tail = node\n    }\n\n    func toArray() -> [Int] {\n        var result: [Int] = []\n        var current = head\n        while let node = current {\n            result.append(node.value)\n            current = node.next\n        }\n        return result\n    }\n\n    func reverse() {\n        tail = head\n        var previous: Node? = nil\n        var current = head\n        while let node = current {\n            let next = node.next\n            node.next = previous\n            previous = node\n            current = next\n        }\n        head = previous\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class LinkedList {\n    fun append(value: Int) { }\n    fun toArray(): List<Int> { }\n    fun reverse() { }\n}",
+            "solution": "class Node(val value: Int) {\n    var next: Node? = null\n}\n\nclass LinkedList {\n    private var head: Node? = null\n    private var tail: Node? = null\n\n    fun append(value: Int) {\n        val node = Node(value)\n        val currentTail = tail\n        if (currentTail != null) {\n            currentTail.next = node\n        } else {\n            head = node\n        }\n        tail = node\n    }\n\n    fun toArray(): List<Int> {\n        val result = mutableListOf<Int>()\n        var current = head\n        while (current != null) {\n            result.add(current.value)\n            current = current.next\n        }\n        return result\n    }\n\n    fun reverse() {\n        tail = head\n        var previous: Node? = null\n        var current = head\n        while (current != null) {\n            val next = current.next\n            current.next = previous\n            previous = current\n            current = next\n        }\n        head = previous\n    }\n}"
+          },
+          "tests": [
+            { "input": "append(1); append(2); append(3); reverse(); toArray()", "output": "[3, 2, 1] (ordre inversé en place)" },
+            { "input": "liste à un seul élément : append(42); reverse(); toArray()", "output": "[42] (un seul nœud, l'inversion ne change rien)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Détecter un cycle (hasCycle)",
+          "statement": "Ajouter hasCycle(), qui détecte si la liste contient un cycle — c'est-à-dire qu'un nœud, en suivant next, finit par revenir sur un nœud déjà visité au lieu d'atteindre nil/null. Comme la liste n'expose pas de méthode pour créer un cycle publiquement, l'exercice fournit un constructeur interne de test qui relie manuellement le dernier nœud à un nœud antérieur.",
+          "swift": {
+            "signature": "class LinkedList {\n    func append(_ value: Int) { }\n    func hasCycle() -> Bool { }\n}",
+            "solution": "class Node {\n    var value: Int\n    var next: Node?\n    init(_ value: Int) {\n        self.value = value\n    }\n}\n\nclass LinkedList {\n    private var head: Node?\n    private var tail: Node?\n\n    func append(_ value: Int) {\n        let node = Node(value)\n        if let tail = tail {\n            tail.next = node\n        } else {\n            head = node\n        }\n        tail = node\n    }\n\n    func hasCycle() -> Bool {\n        var slow = head\n        var fast = head\n        while fast?.next != nil {\n            slow = slow?.next\n            fast = fast?.next?.next\n            if slow === fast {\n                return true\n            }\n        }\n        return false\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class LinkedList {\n    fun append(value: Int) { }\n    fun hasCycle(): Boolean { }\n}",
+            "solution": "class Node(val value: Int) {\n    var next: Node? = null\n}\n\nclass LinkedList {\n    private var head: Node? = null\n    private var tail: Node? = null\n\n    fun append(value: Int) {\n        val node = Node(value)\n        val currentTail = tail\n        if (currentTail != null) {\n            currentTail.next = node\n        } else {\n            head = node\n        }\n        tail = node\n    }\n\n    fun hasCycle(): Boolean {\n        var slow = head\n        var fast = head\n        while (fast?.next != null) {\n            slow = slow?.next\n            fast = fast.next?.next\n            if (slow === fast) {\n                return true\n            }\n        }\n        return false\n    }\n}"
+          },
+          "tests": [
+            { "input": "append(1); append(2); append(3); hasCycle()", "output": "false (liste linéaire classique, next finit par valoir nil/null)" },
+            { "input": "append(1); append(2); append(3) puis le nœud contenant 3 est relié manuellement au nœud contenant 1 (cycle artificiel pour le test) ; hasCycle()", "output": "true (le pointeur rapide rattrape le pointeur lent à l'intérieur du cycle)" }
+          ]
+        }
+      ]
     },
     {
       "id": "debounce-throttle",
