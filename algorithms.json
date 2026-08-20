@@ -481,7 +481,62 @@
       "fullDescription": "Deux index parcourent une séquence en maintenant une fenêtre valide : l'un avance pour étendre la fenêtre, l'autre pour la réduire quand une contrainte est violée (ex: caractère dupliqué), le tout en O(n) au lieu d'une recherche par force brute en O(n²).",
       "ios": "Un exercice de manipulation de String en Swift, où il faut composer avec les index non entiers du type String (String.Index) plutôt qu'un simple compteur.",
       "android": "Le même algorithme sur une String Kotlin, dont les index sont de simples Int, ce qui rend l'implémentation légèrement plus directe qu'en Swift.",
-      "keywords": ["two pointers", "sliding window", "longest substring", "O(n)", "String.Index"]
+      "keywords": ["two pointers", "sliding window", "longest substring", "O(n)", "String.Index"],
+      "docUrl": "https://www.geeksforgeeks.org/dsa/two-pointers-technique/",
+      "practiceUrl": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Plus longue sous-chaîne sans caractère répété",
+          "statement": "Étant donné une chaîne s, trouver la longueur de la plus longue sous-chaîne (contiguë) ne contenant aucun caractère répété. Utiliser une fenêtre glissante : un pointeur droit étend la fenêtre, un pointeur gauche la contracte dès qu'un caractère déjà présent dans la fenêtre est rencontré.",
+          "swift": {
+            "signature": "func longestUniqueSubstring(_ s: String) -> Int { }",
+            "solution": "func longestUniqueSubstring(_ s: String) -> Int {\n    var lastSeen: [Character: String.Index] = [:]\n    var left = s.startIndex\n    var maxLength = 0\n    var i = s.startIndex\n    while i != s.endIndex {\n        let char = s[i]\n        if let seenAt = lastSeen[char], seenAt >= left {\n            left = s.index(after: seenAt)\n        }\n        lastSeen[char] = i\n        let length = s.distance(from: left, to: i) + 1\n        maxLength = max(maxLength, length)\n        i = s.index(after: i)\n    }\n    return maxLength\n}"
+          },
+          "kotlin": {
+            "signature": "fun longestUniqueSubstring(s: String): Int { }",
+            "solution": "fun longestUniqueSubstring(s: String): Int {\n    val lastSeen = HashMap<Char, Int>()\n    var left = 0\n    var maxLength = 0\n    for (i in s.indices) {\n        val char = s[i]\n        val seenAt = lastSeen[char]\n        if (seenAt != null && seenAt >= left) {\n            left = seenAt + 1\n        }\n        lastSeen[char] = i\n        maxLength = maxOf(maxLength, i - left + 1)\n    }\n    return maxLength\n}"
+          },
+          "tests": [
+            { "input": "s = \"abcabcbb\"", "output": "3 (la sous-chaîne \"abc\", la fenêtre se réajuste à chaque répétition sans jamais dépasser 3)" },
+            { "input": "s = \"bbbbb\"", "output": "1 (chaque \"b\" force immédiatement le pointeur gauche à rattraper le pointeur droit)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Plus longue sous-chaîne avec au plus K caractères distincts",
+          "statement": "Étant donné une chaîne s et un entier k, trouver la longueur de la plus longue sous-chaîne (contiguë) contenant au plus k caractères distincts. Maintenir une table de fréquences des caractères de la fenêtre courante ; quand le nombre de clés distinctes dépasse k, avancer le pointeur gauche jusqu'à revenir à k ou moins.",
+          "swift": {
+            "signature": "func longestSubstringWithAtMostKDistinct(_ s: String, _ k: Int) -> Int { }",
+            "solution": "func longestSubstringWithAtMostKDistinct(_ s: String, _ k: Int) -> Int {\n    guard k > 0 else { return 0 }\n    var counts: [Character: Int] = [:]\n    var left = s.startIndex\n    var maxLength = 0\n    var i = s.startIndex\n    while i != s.endIndex {\n        let char = s[i]\n        counts[char, default: 0] += 1\n        while counts.count > k {\n            let leftChar = s[left]\n            counts[leftChar]! -= 1\n            if counts[leftChar] == 0 {\n                counts.removeValue(forKey: leftChar)\n            }\n            left = s.index(after: left)\n        }\n        let length = s.distance(from: left, to: i) + 1\n        maxLength = max(maxLength, length)\n        i = s.index(after: i)\n    }\n    return maxLength\n}"
+          },
+          "kotlin": {
+            "signature": "fun longestSubstringWithAtMostKDistinct(s: String, k: Int): Int { }",
+            "solution": "fun longestSubstringWithAtMostKDistinct(s: String, k: Int): Int {\n    if (k <= 0) return 0\n    val counts = HashMap<Char, Int>()\n    var left = 0\n    var maxLength = 0\n    for (i in s.indices) {\n        val char = s[i]\n        counts[char] = (counts[char] ?: 0) + 1\n        while (counts.size > k) {\n            val leftChar = s[left]\n            counts[leftChar] = counts.getValue(leftChar) - 1\n            if (counts.getValue(leftChar) == 0) {\n                counts.remove(leftChar)\n            }\n            left++\n        }\n        maxLength = maxOf(maxLength, i - left + 1)\n    }\n    return maxLength\n}"
+          },
+          "tests": [
+            { "input": "s = \"eceba\", k = 2", "output": "3 (la sous-chaîne \"ece\", qui ne contient que les caractères e et c)" },
+            { "input": "s = \"aa\", k = 1", "output": "2 (un seul caractère distinct, toute la chaîne est valide)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Fenêtre minimale contenant tous les caractères d'une cible",
+          "statement": "Étant donné une chaîne s et une chaîne cible t, trouver la sous-chaîne (contiguë) la plus courte de s qui contient tous les caractères de t, avec au moins leurs multiplicités respectives (ex: si t contient deux 'a', la fenêtre doit contenir au moins deux 'a'). S'il n'existe aucune sous-chaîne valide, renvoyer une chaîne vide. Utiliser une fenêtre glissante à deux pointeurs : le pointeur droit étend la fenêtre jusqu'à ce qu'elle couvre tous les caractères requis, puis le pointeur gauche la contracte tant qu'elle reste valide, en mémorisant la plus courte rencontrée.",
+          "swift": {
+            "signature": "func minWindowSubstring(_ s: String, _ t: String) -> String { }",
+            "solution": "func minWindowSubstring(_ s: String, _ t: String) -> String {\n    guard !s.isEmpty, !t.isEmpty else { return \"\" }\n    var required: [Character: Int] = [:]\n    for char in t {\n        required[char, default: 0] += 1\n    }\n    var missing = t.count\n    var left = s.startIndex\n    var bestStart = s.startIndex\n    var bestLength = Int.max\n    var i = s.startIndex\n    while i != s.endIndex {\n        let char = s[i]\n        if let count = required[char] {\n            if count > 0 {\n                missing -= 1\n            }\n            required[char] = count - 1\n        }\n        while missing == 0 {\n            let currentLength = s.distance(from: left, to: i) + 1\n            if currentLength < bestLength {\n                bestLength = currentLength\n                bestStart = left\n            }\n            let leftChar = s[left]\n            if let count = required[leftChar] {\n                required[leftChar] = count + 1\n                if count + 1 > 0 {\n                    missing += 1\n                }\n            }\n            left = s.index(after: left)\n        }\n        i = s.index(after: i)\n    }\n    guard bestLength != Int.max else { return \"\" }\n    let endIndex = s.index(bestStart, offsetBy: bestLength)\n    return String(s[bestStart..<endIndex])\n}"
+          },
+          "kotlin": {
+            "signature": "fun minWindowSubstring(s: String, t: String): String { }",
+            "solution": "fun minWindowSubstring(s: String, t: String): String {\n    if (s.isEmpty() || t.isEmpty()) return \"\"\n    val required = HashMap<Char, Int>()\n    for (char in t) {\n        required[char] = (required[char] ?: 0) + 1\n    }\n    var missing = t.length\n    var left = 0\n    var bestStart = 0\n    var bestLength = Int.MAX_VALUE\n    for (i in s.indices) {\n        val char = s[i]\n        required[char]?.let { count ->\n            if (count > 0) missing--\n            required[char] = count - 1\n        }\n        while (missing == 0) {\n            val currentLength = i - left + 1\n            if (currentLength < bestLength) {\n                bestLength = currentLength\n                bestStart = left\n            }\n            val leftChar = s[left]\n            required[leftChar]?.let { count ->\n                required[leftChar] = count + 1\n                if (count + 1 > 0) missing++\n            }\n            left++\n        }\n    }\n    return if (bestLength == Int.MAX_VALUE) \"\" else s.substring(bestStart, bestStart + bestLength)\n}"
+          },
+          "tests": [
+            { "input": "s = \"ADOBECODEBANC\", t = \"ABC\"", "output": "\"BANC\" (la plus courte fenêtre de s couvrant A, B et C)" },
+            { "input": "s = \"a\", t = \"aa\"", "output": "\"\" (chaîne vide : t demande deux 'a' mais s n'en contient qu'un seul)" }
+          ]
+        }
+      ]
     },
     {
       "id": "binary-search",
