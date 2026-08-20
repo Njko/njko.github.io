@@ -416,7 +416,62 @@
       "fullDescription": "Protéger un dictionnaire ou un compteur accédé depuis plusieurs threads simultanément, en comparant les approches : verrou exclusif simple, verrou lecteur/écrivain qui autorise les lectures concurrentes, ou modèle d'isolation par acteur qui sérialise les accès sans verrou explicite.",
       "ios": "OSAllocatedUnfairLock ou NSLock pour un verrou bas niveau performant, versus un actor Swift qui isole l'état et sérialise automatiquement les accès via des points de suspension async ; en mode strict concurrency de Swift 6, le compilateur refuse de toute façon un état mutable partagé non isolé entre tâches, rendant l'un de ces deux choix quasi obligatoire pour compiler.",
       "android": "synchronized ou un Mutex de coroutine pour protéger une MutableMap classique en exclusion mutuelle, ou un StateFlow<Map<...>> avec update{} atomique pour un compteur observable directement collectable depuis Compose.",
-      "keywords": ["thread safety", "mutex", "actor", "race condition", "OSAllocatedUnfairLock"]
+      "keywords": ["thread safety", "mutex", "actor", "race condition", "OSAllocatedUnfairLock"],
+      "docUrl": "https://en.wikipedia.org/wiki/Race_condition",
+      "practiceUrl": "https://leetcode.com/problems/print-in-order/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Compteur simple",
+          "statement": "Implémenter un compteur avec une opération increment() qui augmente la valeur de 1, et une propriété value qui expose la valeur courante. Cet exercice se concentre uniquement sur la justesse de la logique d'incrémentation en environnement séquentiel — la synchronisation entre threads n'entre pas encore en jeu, elle est abordée dans les exercices suivants.",
+          "swift": {
+            "signature": "class Counter {\n    private(set) var value: Int = 0\n    func increment() { }\n}",
+            "solution": "class Counter {\n    private(set) var value: Int = 0\n\n    func increment() {\n        value += 1\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class Counter {\n    var value: Int = 0\n        private set\n\n    fun increment() { }\n}",
+            "solution": "class Counter {\n    var value: Int = 0\n        private set\n\n    fun increment() {\n        value += 1\n    }\n}"
+          },
+          "tests": [
+            { "input": "counter neuf ; increment() ; increment() ; value", "output": "2" },
+            { "input": "counter neuf ; value (sans jamais appeler increment())", "output": "0" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Compteur par clé",
+          "statement": "Étendre le compteur pour associer un compteur indépendant à chaque clé : increment(key) incrémente le compteur associé à key (en le créant à 0 puis en le portant à 1 si la clé est nouvelle), et value(key) renvoie la valeur courante du compteur pour cette clé (0 si elle n'a jamais été incrémentée). Cette API imite celle d'un dictionnaire thread-safe exposé publiquement, même si cet exercice se limite à la logique d'accès par clé, sans les threads eux-mêmes.",
+          "swift": {
+            "signature": "class KeyedCounter {\n    func increment(_ key: String) { }\n    func value(_ key: String) -> Int { }\n}",
+            "solution": "class KeyedCounter {\n    private var counts: [String: Int] = [:]\n\n    func increment(_ key: String) {\n        counts[key, default: 0] += 1\n    }\n\n    func value(_ key: String) -> Int {\n        counts[key] ?? 0\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class KeyedCounter {\n    fun increment(key: String) { }\n    fun value(key: String): Int { }\n}",
+            "solution": "class KeyedCounter {\n    private val counts = HashMap<String, Int>()\n\n    fun increment(key: String) {\n        counts[key] = (counts[key] ?: 0) + 1\n    }\n\n    fun value(key: String): Int {\n        return counts[key] ?: 0\n    }\n}"
+          },
+          "tests": [
+            { "input": "increment(\"a\"); increment(\"a\"); increment(\"b\"); value(\"a\")", "output": "2" },
+            { "input": "value(\"c\") sans jamais avoir appelé increment(\"c\")", "output": "0" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Porte de synchronisation",
+          "statement": "Modéliser la porte de synchronisation du problème « Print in Order » sans vrais threads : un objet expose first(), second() et third(), qui peuvent être appelés dans n'importe quel ordre (comme si plusieurs threads non synchronisés les invoquaient directement, sans verrou). Chaque méthode renvoie true si son prérequis (l'étape précédente) avait déjà été exécuté au moment de l'appel, false sinon — ce qui permet de détecter un appel hors ordre sans jamais bloquer l'exécution. first() n'a pas de prérequis et renvoie donc toujours true.",
+          "swift": {
+            "signature": "class OrderingGate {\n    func first() -> Bool { }\n    func second() -> Bool { }\n    func third() -> Bool { }\n}",
+            "solution": "class OrderingGate {\n    private var firstDone = false\n    private var secondDone = false\n\n    func first() -> Bool {\n        firstDone = true\n        return true\n    }\n\n    func second() -> Bool {\n        let inOrder = firstDone\n        secondDone = true\n        return inOrder\n    }\n\n    func third() -> Bool {\n        return secondDone\n    }\n}"
+          },
+          "kotlin": {
+            "signature": "class OrderingGate {\n    fun first(): Boolean { }\n    fun second(): Boolean { }\n    fun third(): Boolean { }\n}",
+            "solution": "class OrderingGate {\n    private var firstDone = false\n    private var secondDone = false\n\n    fun first(): Boolean {\n        firstDone = true\n        return true\n    }\n\n    fun second(): Boolean {\n        val inOrder = firstDone\n        secondDone = true\n        return inOrder\n    }\n\n    fun third(): Boolean {\n        return secondDone\n    }\n}"
+          },
+          "tests": [
+            { "input": "appels dans l'ordre : first() puis second() puis third()", "output": "true, true, true (les trois respectent l'ordre)" },
+            { "input": "appels dans le désordre : second() avant tout, puis first(), puis third()", "output": "second() → false (hors ordre, first() pas encore appelé) ; first() → true ; third() → true (car second() avait bien été exécuté avant lui)" }
+          ]
+        }
+      ]
     },
     {
       "id": "two-pointers",
