@@ -546,7 +546,62 @@
       "fullDescription": "Recherche en O(log n) dans une collection triée en comparant systématiquement l'élément du milieu et en réduisant l'intervalle de moitié. Se présente souvent comme : trouver l'index d'insertion d'un nouvel élément dans une liste déjà triée et déjà partiellement chargée par pagination.",
       "ios": "Recherche de la position d'insertion dans les données déjà chargées d'une List SwiftUI paginée, avant de fusionner une nouvelle page de résultats triés.",
       "android": "Même problème côté LazyColumn avec les données de la bibliothèque Paging3 (androidx.paging.compose), où il faut positionner de nouveaux éléments triés dans une liste déjà partiellement chargée.",
-      "keywords": ["binary search", "dichotomie", "O(log n)", "insertion index", "sorted array"]
+      "keywords": ["binary search", "dichotomie", "O(log n)", "insertion index", "sorted array"],
+      "docUrl": "https://en.wikipedia.org/wiki/Binary_search_algorithm",
+      "practiceUrl": "https://leetcode.com/problems/search-insert-position/",
+      "exercises": [
+        {
+          "level": "facile",
+          "title": "Recherche dichotomique classique",
+          "statement": "Implémenter une recherche dichotomique sur un tableau trié sans doublons : search(sortedArray, target) renvoie l'index de target dans le tableau s'il y est présent, ou une absence sinon.",
+          "swift": {
+            "signature": "func search(_ sortedArray: [Int], _ target: Int) -> Int? { }",
+            "solution": "func search(_ sortedArray: [Int], _ target: Int) -> Int? {\n    var low = 0\n    var high = sortedArray.count - 1\n    while low <= high {\n        let mid = low + (high - low) / 2\n        if sortedArray[mid] == target {\n            return mid\n        } else if sortedArray[mid] < target {\n            low = mid + 1\n        } else {\n            high = mid - 1\n        }\n    }\n    return nil\n}"
+          },
+          "kotlin": {
+            "signature": "fun search(sortedArray: List<Int>, target: Int): Int? { }",
+            "solution": "fun search(sortedArray: List<Int>, target: Int): Int? {\n    var low = 0\n    var high = sortedArray.size - 1\n    while (low <= high) {\n        val mid = low + (high - low) / 2\n        when {\n            sortedArray[mid] == target -> return mid\n            sortedArray[mid] < target -> low = mid + 1\n            else -> high = mid - 1\n        }\n    }\n    return null\n}"
+          },
+          "tests": [
+            { "input": "sortedArray = [1, 3, 5, 6], target = 5", "output": "index 2 (target trouvé)" },
+            { "input": "sortedArray = [1, 3, 5, 6], target = 2", "output": "absent (target ne figure pas dans le tableau)" }
+          ]
+        },
+        {
+          "level": "moyen",
+          "title": "Index d'insertion",
+          "statement": "Étendre la recherche dichotomique pour renvoyer un index d'insertion plutôt qu'une absence : insertionIndex(sortedArray, target) renvoie l'index de target s'il est déjà présent, ou l'index où il faudrait l'insérer pour garder le tableau trié sinon — par exemple pour fusionner un nouvel élément trié dans une liste déjà partiellement chargée par pagination.",
+          "swift": {
+            "signature": "func insertionIndex(_ sortedArray: [Int], _ target: Int) -> Int { }",
+            "solution": "func insertionIndex(_ sortedArray: [Int], _ target: Int) -> Int {\n    var low = 0\n    var high = sortedArray.count\n    while low < high {\n        let mid = low + (high - low) / 2\n        if sortedArray[mid] < target {\n            low = mid + 1\n        } else {\n            high = mid\n        }\n    }\n    return low\n}"
+          },
+          "kotlin": {
+            "signature": "fun insertionIndex(sortedArray: List<Int>, target: Int): Int { }",
+            "solution": "fun insertionIndex(sortedArray: List<Int>, target: Int): Int {\n    var low = 0\n    var high = sortedArray.size\n    while (low < high) {\n        val mid = low + (high - low) / 2\n        if (sortedArray[mid] < target) {\n            low = mid + 1\n        } else {\n            high = mid\n        }\n    }\n    return low\n}"
+          },
+          "tests": [
+            { "input": "sortedArray = [1, 3, 5, 6], target = 5", "output": "index 2 (target déjà présent à cette position)" },
+            { "input": "sortedArray = [1, 3, 5, 6], target = 2", "output": "index 1 (insertion entre 1 et 3 pour garder le tri)" }
+          ]
+        },
+        {
+          "level": "difficile",
+          "title": "Première et dernière position d'une valeur dupliquée",
+          "statement": "Le tableau trié peut désormais contenir des doublons. Implémenter firstAndLastPosition(sortedArray, target) qui renvoie le couple (première position, dernière position) occupée par target dans le tableau, ou une absence si target n'y figure pas. La complexité doit rester O(log n) : pas de parcours linéaire une fois la première occurrence localisée.",
+          "swift": {
+            "signature": "func firstAndLastPosition(_ sortedArray: [Int], _ target: Int) -> (first: Int, last: Int)? { }",
+            "solution": "func firstAndLastPosition(_ sortedArray: [Int], _ target: Int) -> (first: Int, last: Int)? {\n    func lowerBound(_ value: Int) -> Int {\n        var low = 0\n        var high = sortedArray.count\n        while low < high {\n            let mid = low + (high - low) / 2\n            if sortedArray[mid] < value {\n                low = mid + 1\n            } else {\n                high = mid\n            }\n        }\n        return low\n    }\n\n    let first = lowerBound(target)\n    guard first < sortedArray.count, sortedArray[first] == target else {\n        return nil\n    }\n    let last = lowerBound(target + 1) - 1\n    return (first, last)\n}"
+          },
+          "kotlin": {
+            "signature": "fun firstAndLastPosition(sortedArray: List<Int>, target: Int): Pair<Int, Int>? { }",
+            "solution": "fun firstAndLastPosition(sortedArray: List<Int>, target: Int): Pair<Int, Int>? {\n    fun lowerBound(value: Int): Int {\n        var low = 0\n        var high = sortedArray.size\n        while (low < high) {\n            val mid = low + (high - low) / 2\n            if (sortedArray[mid] < value) {\n                low = mid + 1\n            } else {\n                high = mid\n            }\n        }\n        return low\n    }\n\n    val first = lowerBound(target)\n    if (first >= sortedArray.size || sortedArray[first] != target) {\n        return null\n    }\n    val last = lowerBound(target + 1) - 1\n    return Pair(first, last)\n}"
+          },
+          "tests": [
+            { "input": "sortedArray = [5, 7, 7, 8, 8, 10], target = 8", "output": "(première = 3, dernière = 4)" },
+            { "input": "sortedArray = [5, 7, 7, 8, 8, 10], target = 6", "output": "absent (6 ne figure pas dans le tableau)" }
+          ]
+        }
+      ]
     },
     {
       "id": "bfs-dfs-tree",
